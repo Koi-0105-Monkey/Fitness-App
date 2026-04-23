@@ -45,11 +45,10 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Hash password trước khi save
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+// Hash password trước khi save (Mongoose v6+ không cần next callback)
+UserSchema.pre<IUser>('save', async function () {
+  if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 // Method so sánh password
