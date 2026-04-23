@@ -1,0 +1,32 @@
+# Node
+node_modules/
+dist/
+.env
+*.log
+npm-debug.log*
+
+# Expo / React Native
+.expo/
+ios/
+android/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.orig.*
+web-build/
+.expo-shared/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Build
+build/
+coverage/
