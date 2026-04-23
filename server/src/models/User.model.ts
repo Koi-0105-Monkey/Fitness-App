@@ -8,9 +8,11 @@ export type Gender = 'male' | 'female' | 'other';
 export interface IUser extends Document {
   fullName: string;
   nickname?: string;
-  email: string;
-  password: string;
+  email?: string; // Không bắt buộc nếu đăng ký bằng SDT
   mobileNumber?: string;
+  password?: string; // Không bắt buộc nếu Social Login
+  authProvider: 'local' | 'google' | 'facebook';
+  providerId?: string; // ID trả về từ Google/Facebook
   dateOfBirth?: string;
   gender?: Gender;
   age?: number;
@@ -28,9 +30,12 @@ const UserSchema = new Schema<IUser>(
   {
     fullName: { type: String, required: true, trim: true },
     nickname: { type: String, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, select: false },
-    mobileNumber: { type: String },
+    // email và mobileNumber dùng sparse: true để cho phép bỏ trống nhưng nếu có thì phải duy nhất
+    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+    mobileNumber: { type: String, unique: true, sparse: true, trim: true },
+    password: { type: String, select: false },
+    authProvider: { type: String, enum: ['local', 'google', 'facebook'], default: 'local' },
+    providerId: { type: String },
     dateOfBirth: { type: String },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     age: { type: Number },
@@ -47,12 +52,13 @@ const UserSchema = new Schema<IUser>(
 
 // Hash password trước khi save (Mongoose v6+ không cần next callback)
 UserSchema.pre<IUser>('save', async function () {
-  if (!this.isModified('password')) return;
+  if (!this.isModified('password') || !this.password) return;
   this.password = await bcrypt.hash(this.password, 12);
 });
 
 // Method so sánh password
 UserSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
+  if (!this.password) return false;
   return bcrypt.compare(password, this.password);
 };
 

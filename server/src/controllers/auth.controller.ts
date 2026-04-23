@@ -5,19 +5,26 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { generateTokens } from '../utils/jwt';
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, emailOrPhone, password } = req.body;
 
-  const existingUser = await User.findOne({ email });
+  // Kiểm tra emailOrPhone là email hay sdt
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrPhone);
+  const query = isEmail ? { email: emailOrPhone } : { mobileNumber: emailOrPhone };
+
+  const existingUser = await User.findOne(query);
   if (existingUser) {
-    return sendError(res, 'Email is already in use', 400);
+    return sendError(res, `${isEmail ? 'Email' : 'Số điện thoại'} đã được sử dụng`, 400);
   }
 
-  const user = await User.create({ fullName, email, password });
-  const tokens = generateTokens(user.id, user.email);
+  const userData: any = { fullName, password, authProvider: 'local' };
+  if (isEmail) userData.email = emailOrPhone;
+  else userData.mobileNumber = emailOrPhone;
+
+  const user = await User.create(userData);
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
-  // Loại bỏ password và refreshToken trước khi trả về
   const userResponse: any = user.toObject();
   delete userResponse.password;
   delete userResponse.refreshToken;
@@ -26,16 +33,17 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { emailOrPhone, password } = req.body;
   
-  // Mặc định select: false ở password bên schema, nên phải .select('+password') lấy ra để compare
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({
+    $or: [{ email: emailOrPhone }, { mobileNumber: emailOrPhone }]
+  }).select('+password');
   
-  if (!user || !(await user.comparePassword(password))) {
-    return sendError(res, 'Invalid email or password', 401);
+  if (!user || user.authProvider !== 'local' || !(await user.comparePassword(password))) {
+    return sendError(res, 'Sai tài khoản hoặc mật khẩu (hoặc tài khoản liên kết MXH)', 401);
   }
 
-  const tokens = generateTokens(user.id, user.email);
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
@@ -44,6 +52,45 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   delete userResponse.refreshToken;
 
   sendSuccess(res, { user: userResponse, tokens }, 'Login successful');
+});
+
+export const socialLogin = asyncHandler(async (req: Request, res: Response) => {
+  const { provider, providerId, email, fullName, avatarUrl } = req.body;
+  // Trong thực tế: Backend phải verify Google/Facebook AccessToken gửi từ FE
+  // FE gửi token -> BE tự fetch thông tin từ Google/Facebook API bằng token đó.
+  // Ở code này tạm thời skip bước verify token để đơn giản hoá ở FE 
+
+  let user = await User.findOne({ 
+    $or: [
+      { providerId, authProvider: provider },
+      { email } // Gộp tài khoản nếu email trùng khớp
+    ]
+  });
+
+  if (!user) {
+    user = await User.create({
+      authProvider: provider,
+      providerId,
+      email,
+      fullName,
+      avatarUrl,
+      isSetupComplete: false
+    });
+  } else if (!user.providerId) {
+    // Nếu email trùng nhưng tài khoản cũ chưa liên kết social
+    user.providerId = providerId;
+    user.authProvider = provider;
+  }
+
+  const tokens = generateTokens(user.id, user.email || '');
+  user.refreshToken = tokens.refreshToken;
+  await user.save();
+
+  const userResponse: any = user.toObject();
+  delete userResponse.password;
+  delete userResponse.refreshToken;
+
+  sendSuccess(res, { user: userResponse, tokens }, 'Social login successful');
 });
 
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
@@ -58,7 +105,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
   }
 
   // Cấp bộ token mới
-  const tokens = generateTokens(user.id, user.email);
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
@@ -66,20 +113,25 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
+  const { emailOrPhone } = req.body;
+  const user = await User.findOne({
+    $or: [{ email: emailOrPhone }, { mobileNumber: emailOrPhone }]
+  });
+  
   if (!user) {
-    // Để bảo mật, không cho biết email có tồn tại không
-    return sendSuccess(res, null, 'If this email exists, a password reset link has been sent');
+    return sendSuccess(res, null, 'If this account exists, a reset code has been sent');
   }
 
-  // TODO: Tích hợp thư viện Email gửi link/OTP thật (hiện tại mock success)
-  sendSuccess(res, null, 'If this email exists, a password reset link has been sent');
+  // TODO: Tích hợp thư viện gửi Email/SMS OTP
+  sendSuccess(res, null, 'If this account exists, a reset code has been sent');
 });
 
 export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { email, newPassword, otp } = req.body; 
-  const user = await User.findOne({ email });
+  const { emailOrPhone, newPassword, otp } = req.body; 
+  const user = await User.findOne({
+    $or: [{ email: emailOrPhone }, { mobileNumber: emailOrPhone }]
+  });
+  
   if (!user) {
     return sendError(res, 'User not found', 404);
   }
