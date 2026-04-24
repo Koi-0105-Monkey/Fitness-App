@@ -22,6 +22,15 @@ export interface IUser extends Document {
   activityLevel?: ActivityLevel;
   avatarUrl?: string;
   isSetupComplete: boolean;
+  notificationSettings: {
+    general: boolean;
+    sound: boolean;
+    vibrate: boolean;
+    doNotDisturb: boolean;
+    lockScreen: boolean;
+    reminders: boolean;
+  };
+  favoriteResources: mongoose.Types.ObjectId[];
   refreshToken?: string;
   comparePassword(password: string): Promise<boolean>;
 }
@@ -45,6 +54,16 @@ const UserSchema = new Schema<IUser>(
     activityLevel: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
     avatarUrl: { type: String },
     isSetupComplete: { type: Boolean, default: false },
+    notificationSettings: {
+      general: { type: Boolean, default: true },
+      sound: { type: Boolean, default: true },
+      vibrate: { type: Boolean, default: true },
+      doNotDisturb: { type: Boolean, default: false },
+      lockScreen: { type: Boolean, default: true },
+      reminders: { type: Boolean, default: true },
+    },
+    // Lưu chung cho các Video, Article của Admin và Post của Cộng đồng sau này
+    favoriteResources: [{ type: Schema.Types.ObjectId, refPath: 'resourceModel' }],
     refreshToken: { type: String, select: false },
   },
   { timestamps: true }

@@ -10,4 +10,7 @@ router.post('/refresh', authController.refreshToken);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 
+import { verifyToken } from '../middleware/auth.middleware';
+router.put('/change-password', verifyToken, authController.changePassword);
+
 export default router;
