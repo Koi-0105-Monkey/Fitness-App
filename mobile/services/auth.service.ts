@@ -4,13 +4,21 @@ import { ENDPOINTS } from '../constants/endpoints';
 // ── Types ────────────────────────────────────────────────────────────────────
 export interface RegisterPayload {
   fullName: string;
-  email: string;
-  password: string;
+  emailOrPhone: string;
+  password?: string;
 }
 
 export interface LoginPayload {
-  email: string;
-  password: string;
+  emailOrPhone: string;
+  password?: string;
+}
+
+export interface SocialLoginPayload {
+  provider: 'google' | 'facebook';
+  providerId: string;
+  email?: string;
+  fullName?: string;
+  avatarUrl?: string;
 }
 
 // ── Auth Service ─────────────────────────────────────────────────────────────
@@ -25,13 +33,23 @@ export const authService = {
     return data;
   },
 
-  forgotPassword: async (email: string) => {
-    const { data } = await axiosInstance.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
+  socialLogin: async (payload: SocialLoginPayload) => {
+    const { data } = await axiosInstance.post(ENDPOINTS.AUTH.SOCIAL_LOGIN, payload);
     return data;
   },
 
-  resetPassword: async (token: string, newPassword: string) => {
-    const { data } = await axiosInstance.post(ENDPOINTS.AUTH.RESET_PASSWORD, { token, newPassword });
+  forgotPassword: async (emailOrPhone: string) => {
+    const { data } = await axiosInstance.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { emailOrPhone });
+    return data;
+  },
+
+  resetPassword: async (emailOrPhone: string, otp: string, newPassword: string) => {
+    const { data } = await axiosInstance.post(ENDPOINTS.AUTH.RESET_PASSWORD, { emailOrPhone, otp, newPassword });
+    return data;
+  },
+
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    const { data } = await axiosInstance.put(ENDPOINTS.AUTH.CHANGE_PASSWORD, { oldPassword, newPassword });
     return data;
   },
 };

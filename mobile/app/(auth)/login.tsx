@@ -24,7 +24,7 @@ export default function LoginScreen() {
     }
     try {
       setLoading(true);
-      const res = await authService.login({ email: email.trim(), password });
+      const res = await authService.login({ emailOrPhone: email.trim(), password });
       await login(res.data.tokens, res.data.user);
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Đăng nhập thất bại';

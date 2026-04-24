@@ -35,7 +35,7 @@ export default function RegisterScreen() {
       setLoading(true);
       const res = await authService.register({
         fullName: fullName.trim(),
-        email: email.trim(),
+        emailOrPhone: email.trim(),
         password,
       });
       await login(res.data.tokens, res.data.user);

@@ -9,15 +9,18 @@ export const ENDPOINTS = {
   AUTH: {
     REGISTER: `${BASE}/auth/register`,
     LOGIN: `${BASE}/auth/login`,
+    SOCIAL_LOGIN: `${BASE}/auth/social-login`,
     REFRESH: `${BASE}/auth/refresh`,
     FORGOT_PASSWORD: `${BASE}/auth/forgot-password`,
     RESET_PASSWORD: `${BASE}/auth/reset-password`,
+    CHANGE_PASSWORD: `${BASE}/auth/change-password`,
   },
 
   // User
   USER: {
     ME: `${BASE}/users/me`,
     AVATAR: `${BASE}/users/avatar`,
+    FAVORITES: `${BASE}/users/me/favorites`,
   },
 
   // Workout
