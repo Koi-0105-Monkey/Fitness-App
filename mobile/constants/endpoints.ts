@@ -2,7 +2,18 @@
 // FITBODY App — API Endpoints
 // =============================================
 
-const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+import Constants from 'expo-constants';
+
+let BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+let SOCKET_BASE = process.env.EXPO_PUBLIC_SOCKET_URL ?? 'http://localhost:5000';
+
+// Thủ thuật: Tự động lấy IP của máy tính khi chạy qua mạng LAN trên điện thoại (Development)
+const debuggerHost = Constants.expoConfig?.hostUri;
+if (debuggerHost) {
+  const ip = debuggerHost.split(':')[0]; // Lấy phần IP, bỏ cái port của Expo đi
+  BASE = `http://${ip}:5000/api`;
+  SOCKET_BASE = `http://${ip}:5000`;
+}
 
 export const ENDPOINTS = {
   // Auth
@@ -69,4 +80,4 @@ export const ENDPOINTS = {
   SEARCH: `${BASE}/search`,
 };
 
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ?? 'http://localhost:5000';
+export const SOCKET_URL = SOCKET_BASE;
