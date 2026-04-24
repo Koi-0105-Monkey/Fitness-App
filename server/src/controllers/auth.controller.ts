@@ -142,3 +142,22 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
 
   sendSuccess(res, null, 'Password has been reset successfully');
 });
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(userId).select('+password');
+  if (!user || user.authProvider !== 'local') {
+    return sendError(res, 'User not found or social login user', 404);
+  }
+
+  if (!(await user.comparePassword(oldPassword))) {
+    return sendError(res, 'Mật khẩu hiện tại không đúng', 400);
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  sendSuccess(res, null, 'Đổi mật khẩu thành công');
+});

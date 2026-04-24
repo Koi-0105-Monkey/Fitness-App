@@ -34,3 +34,46 @@ export const updateMe = asyncHandler(async (req: Request, res: Response) => {
 
   sendSuccess(res, user, 'Profile updated successfully');
 });
+
+export const toggleFavorite = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { resourceId } = req.body;
+
+  if (!resourceId) return sendError(res, 'Thiếu ID tài nguyên (Bài tập/Video/Bài báo)', 400);
+
+  const user = await User.findById(userId);
+  if (!user) return sendError(res, 'User not found', 404);
+
+  const index = user.favoriteResources.indexOf(resourceId);
+  if (index > -1) {
+    user.favoriteResources.splice(index, 1); // Đã có thì bỏ thích
+  } else {
+    user.favoriteResources.push(resourceId); // Chưa có thì thích
+  }
+
+  await user.save();
+  sendSuccess(res, user.favoriteResources, 'Đã cập nhật danh sách yêu thích');
+});
+
+export const getFavorites = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  // Lấy danh sách favorite của user, có móc nối thông tin (populate) với bảng tương ứng
+  // Vì tuỳ thuộc vào ID thuộc bảng Workout hay Resource, Mongoose (với refPath) sẽ tìm đúng chỗ.
+  const user = await User.findById(userId).populate('favoriteResources');
+  
+  if (!user) return sendError(res, 'User not found', 404);
+
+  sendSuccess(res, user.favoriteResources, 'Danh sách yêu thích');
+});
+
+export const deleteMe = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  const user = await User.findByIdAndDelete(userId);
+  if (!user) return sendError(res, 'User not found', 404);
+
+  // TODO: Nếu app cần lưu giữ data thì chỉ đổi isDeleted = true thay vì xoá cứng
+  
+  sendSuccess(res, null, 'Đã xoá tài khoản thành công');
+});

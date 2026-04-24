@@ -8,5 +8,9 @@ const router = Router();
 router.use(verifyToken);
 router.get('/me', userController.getMe);
 router.put('/me', userController.updateMe);
+router.delete('/me', userController.deleteMe);
+
+router.post('/me/favorites', userController.toggleFavorite);
+router.get('/me/favorites', userController.getFavorites);
 
 export default router;
