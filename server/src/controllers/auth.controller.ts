@@ -21,7 +21,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   else userData.mobileNumber = emailOrPhone;
 
   const user = await User.create(userData);
-  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '', user.role);
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
@@ -43,7 +43,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     return sendError(res, 'Sai tài khoản hoặc mật khẩu (hoặc tài khoản liên kết MXH)', 401);
   }
 
-  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '', user.role);
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
@@ -82,7 +82,7 @@ export const socialLogin = asyncHandler(async (req: Request, res: Response) => {
     user.authProvider = provider;
   }
 
-  const tokens = generateTokens(user.id, user.email || '');
+  const tokens = generateTokens(user.id, user.email || '', user.role);
   user.refreshToken = tokens.refreshToken;
   await user.save();
 
@@ -105,7 +105,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
   }
 
   // Cấp bộ token mới
-  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '');
+  const tokens = generateTokens(user.id, user.email || user.mobileNumber || '', user.role);
   user.refreshToken = tokens.refreshToken;
   await user.save();
 

@@ -6,7 +6,17 @@ import { errorMiddleware } from './middleware/error.middleware';
 const app = express();
 
 // ─── Middleware ─────────────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.CLIENT_URL ?? '*', credentials: true }));
+const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['*'];
+app.use(cors({ 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }, 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

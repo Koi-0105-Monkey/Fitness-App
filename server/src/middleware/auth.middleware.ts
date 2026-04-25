@@ -6,6 +6,7 @@ import { AppError } from './error.middleware';
 interface JwtPayload {
   userId: string;
   email: string;
+  role: string;
 }
 
 // Extend Express Request để thêm user

@@ -90,7 +90,7 @@ export default function ExerciseDetailScreen() {
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{exercise.name}</Text>
         <Text style={styles.description}>
-          {exercise.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed cursus libero eget.'}
+          {exercise.description || 'Không có mô tả cho động tác này.'}
         </Text>
 
         <View style={styles.statsRow}>

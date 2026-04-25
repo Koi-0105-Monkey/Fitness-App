@@ -67,14 +67,20 @@ export default function WorkoutDetailScreen() {
             <View style={styles.dot} />
             <Text style={styles.statText}>{workout.calories} Kcal</Text>
             <View style={styles.dot} />
-            <Text style={styles.statText} style={{textTransform: 'capitalize', color: 'white'}}>{workout.level}</Text>
+            <Text style={[styles.statText, {textTransform: 'capitalize', color: 'white'}]}>{workout.level}</Text>
           </View>
         </View>
       </View>
 
-      <ScrollView style={styles.scrollArea} contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
-        {workout.rounds.map((round, rIndex) => (
-          <View key={round._id || rIndex} style={styles.roundBlock}>
+      <ScrollView style={styles.scrollArea} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Description Section */}
+        <View style={styles.descriptionSection}>
+          <Text style={styles.descriptionText}>{workout.description}</Text>
+        </View>
+
+        <View style={{ paddingHorizontal: 24 }}>
+          {workout.rounds.map((round, rIndex) => (
+            <View key={round._id || rIndex} style={styles.roundBlock}>
             <Text style={styles.roundTitle}>{round.roundName}</Text>
             
             {round.exercises.map((ex, eIndex) => (
@@ -104,6 +110,7 @@ export default function WorkoutDetailScreen() {
             ))}
           </View>
         ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -123,6 +130,15 @@ const styles = StyleSheet.create({
   dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'white' },
 
   scrollArea: { flex: 1 },
+  descriptionSection: {
+    padding: 24,
+    paddingBottom: 10,
+  },
+  descriptionText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 15,
+    lineHeight: 22,
+  },
   roundBlock: { marginBottom: 30 },
   roundTitle: { color: '#E2F163', fontSize: 20, fontWeight: '600', marginBottom: 16 },
   
