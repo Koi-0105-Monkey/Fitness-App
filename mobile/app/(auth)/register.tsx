@@ -4,13 +4,15 @@ import {
   StyleSheet, ActivityIndicator, Alert,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/auth.service';
 import { COLORS } from '../../constants/colors';
+import { useSetupStore } from '../../store/setupStore';
 
 export default function RegisterScreen() {
-  const { login } = useAuthStore();
+  const router = useRouter();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,7 +40,28 @@ export default function RegisterScreen() {
         emailOrPhone: email.trim(),
         password,
       });
-      await login(res.data.tokens, res.data.user);
+      
+      const { user, tokens } = res.data;
+      
+      // Save tokens
+      await SecureStore.setItemAsync('accessToken', tokens.accessToken);
+      if (tokens.refreshToken) {
+        await SecureStore.setItemAsync('refreshToken', tokens.refreshToken);
+      }
+      
+      // Setup not complete yet for new user
+      await SecureStore.setItemAsync('setupComplete', 'false');
+
+      // Pre-fill setup store so fill-profile has the data
+      const isEmail = email.includes('@');
+      useSetupStore.getState().updateData({
+        fullName: fullName.trim(),
+        email: isEmail ? email.trim() : '',
+        mobile: !isEmail ? email.trim() : '',
+      });
+
+      // Navigate directly to setup
+      router.replace('/(setup)/gender' as any);
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Đăng ký thất bại';
       Alert.alert('Lỗi', msg);

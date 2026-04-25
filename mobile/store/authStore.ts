@@ -17,6 +17,7 @@ interface AuthState {
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
   checkAuth: () => Promise<void>;
+  completeSetup: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -52,6 +53,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const current = get().user;
     if (!current) return;
     set({ user: { ...current, ...updatedFields } });
+  },
+
+  completeSetup: () => {
+    set({ isSetupComplete: true });
   },
 
   checkAuth: async () => {
