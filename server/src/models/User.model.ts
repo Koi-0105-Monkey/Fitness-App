@@ -31,6 +31,7 @@ export interface IUser extends Document {
     reminders: boolean;
   };
   favoriteResources: mongoose.Types.ObjectId[];
+  role: 'user' | 'admin';
   refreshToken?: string;
   comparePassword(password: string): Promise<boolean>;
 }
@@ -64,6 +65,7 @@ const UserSchema = new Schema<IUser>(
     },
     // Lưu chung cho các Video, Article của Admin và Post của Cộng đồng sau này
     favoriteResources: [{ type: Schema.Types.ObjectId, refPath: 'resourceModel' }],
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     refreshToken: { type: String, select: false },
   },
   { timestamps: true }

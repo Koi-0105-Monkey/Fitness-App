@@ -22,15 +22,23 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={28} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="workout"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="barbell" size={28} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="resources"
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="document-text" size={28} color={color} />
           ),
         }}
@@ -38,7 +46,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="star" size={28} color={color} />
           ),
         }}
@@ -46,7 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="support"
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="headset" size={28} color={color} />
           ),
         }}

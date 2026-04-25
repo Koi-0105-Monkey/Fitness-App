@@ -16,8 +16,13 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction
 ) => {
-  const statusCode = (err as AppError).statusCode ?? 500;
-  const message = err.message ?? 'Internal Server Error';
+  let statusCode = (err as AppError).statusCode ?? 500;
+  let message = err.message ?? 'Internal Server Error';
+
+  // Handle known error types to set correct status code before logging
+  if (err.name === 'ValidationError') statusCode = 400;
+  if (err.name === 'JsonWebTokenError') statusCode = 401;
+  if (err.name === 'TokenExpiredError') statusCode = 401;
 
   if (process.env.NODE_ENV === 'development') {
     console.error(`[ERROR] ${statusCode} — ${message}\n`, err.stack);

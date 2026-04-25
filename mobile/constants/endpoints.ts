@@ -38,9 +38,7 @@ export const ENDPOINTS = {
   WORKOUT: {
     LIST: `${BASE}/workouts`,
     DETAIL: (id: string) => `${BASE}/workouts/${id}`,
-    WEEKLY_CHALLENGE: `${BASE}/workouts/weekly-challenge`,
-    CUSTOM: `${BASE}/workouts/custom`,
-    LOG: `${BASE}/workouts/log`,
+    TRAINING_OF_DAY: `${BASE}/workouts/training-of-day`,
   },
 
   // Progress
