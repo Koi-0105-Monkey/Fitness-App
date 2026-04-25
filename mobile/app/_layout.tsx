@@ -16,19 +16,19 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
 
+    /* 
+    TẠM THỜI COMMENT ĐỂ TEST UI WORKOUT 
     const inAuthGroup = segments[0] === '(auth)';
     const inSetupGroup = segments[0] === '(setup)';
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Chưa đăng nhập → về Login
       router.replace('/(auth)/login');
     } else if (isAuthenticated && !isSetupComplete && !inSetupGroup) {
-      // Đã đăng nhập nhưng chưa setup profile 7 bước
       router.replace('/(setup)/gender');
     } else if (isAuthenticated && isSetupComplete && (inAuthGroup || inSetupGroup)) {
-      // Đã xong hết → vào app
       router.replace('/(tabs)');
     }
+    */
   }, [isAuthenticated, isLoading, isSetupComplete, segments]);
 
   if (isLoading) {

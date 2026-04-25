@@ -17,12 +17,12 @@ app.get('/health', (_req, res) => {
 
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import workoutRoutes from './routes/workout.routes';
 
 // ─── Routes (thêm dần theo từng feature) ────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/workouts', workoutRoutes);
-// ... thêm dần theo sprint
+app.use('/api/workouts', workoutRoutes);
 // ─── Global Error Handler (phải ở cuối) ─────────────────────────────────────
 app.use(errorMiddleware);
 
