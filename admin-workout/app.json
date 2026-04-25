@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "FITBODY Admin",
+    "slug": "admin-workout",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#212020"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitbody.admin"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#212020"
+      },
+      "package": "com.fitbody.admin"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "fitbody-admin"
+  }
+}

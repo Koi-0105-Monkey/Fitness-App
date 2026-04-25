@@ -14,7 +14,11 @@ export const getWorkouts = asyncHandler(async (req: Request, res: Response) => {
     filter.level = level;
   }
 
-  const workouts = await Workout.find(filter).sort({ createdAt: -1 });
+  let workouts = await Workout.find(filter);
+  
+  // Shuffle ngẫu nhiên bài tập (tạm thời theo ý bạn)
+  workouts = workouts.sort(() => Math.random() - 0.5);
+
   sendSuccess(res, workouts, 'Lấy danh sách bài tập thành công');
 });
 
@@ -60,6 +64,19 @@ export const getWorkoutById = asyncHandler(async (req: Request, res: Response) =
 // @desc    API ẩn để tạo dữ liệu giả (Seed Data) test UI
 // @route   POST /api/workouts/seed
 // @access  Private
+// @desc    Tạo bài tập mới
+// @route   POST /api/workouts
+// @access  Private (Admin)
+export const createWorkout = asyncHandler(async (req: Request, res: Response) => {
+  const workoutData = req.body;
+  
+  // Mongoose middleware sẽ tự động tính exercisesCount nếu ta truyền rounds
+  const newWorkout = new Workout(workoutData);
+  await newWorkout.save();
+  
+  sendSuccess(res, newWorkout, 'Tạo bài tập mới thành công', 201);
+});
+
 export const seedWorkouts = asyncHandler(async (req: Request, res: Response) => {
   await Workout.deleteMany(); // Xoá data cũ
   
