@@ -22,10 +22,9 @@ export const updateMe = asyncHandler(async (req: Request, res: Response) => {
   // Không cho phép update password qua endpoint này
   if (updates.password) delete updates.password;
 
-  // Cho phép FE truyền `isSetupComplete: true` khi xong Setup Wizard
   const user = await User.findByIdAndUpdate(userId, updates, {
-    new: true,           // Trả về object sau khi đã update
-    runValidators: true, // Chạy Model Validator của mongoose
+    returnDocument: 'after', // Trả về object sau khi đã update
+    runValidators: true,     // Chạy Model Validator của mongoose
   });
 
   if (!user) {
