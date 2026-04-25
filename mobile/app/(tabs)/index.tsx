@@ -346,21 +346,6 @@ const styles = StyleSheet.create({
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
-  container: { flex: 1, backgroundColor: '#212020' },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { color: '#E2F163', fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
-  subtitle: { color: 'white', fontSize: 14, opacity: 0.7, marginBottom: 40, textAlign: 'center' },
-  workoutIconBtn: { alignItems: 'center' },
-  iconPlaceholder: { 
-    width: 80, height: 80, backgroundColor: '#896CFE', 
-    borderRadius: 20, justifyContent: 'center', alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: '#896CFE', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8
-  },
-  iconText: { fontSize: 40 },
-  btnLabel: { color: 'white', fontSize: 16, fontWeight: '600' }
-=======
   container: {
     flex: 1,
     backgroundColor: '#212020',
@@ -541,5 +526,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
   },
->>>>>>> 5f3399347dfecedf65f3bd9f8825cca3643b1694
 });
