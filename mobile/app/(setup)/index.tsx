@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 
-// Setup always starts at gender selection
+// Setup now starts at welcome/intro screen
 export default function SetupIndex() {
-  return <Redirect href="/(setup)/gender" />;
+  return <Redirect href="/(setup)/welcome" />;
 }

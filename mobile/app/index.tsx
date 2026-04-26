@@ -38,7 +38,7 @@ export default function SplashIndex() {
         if (!isAuthenticated) {
           router.replace('/(auth)/login');
         } else if (!isSetupComplete) {
-          router.replace('/(setup)/gender');
+          router.replace('/(setup)/welcome' as any);
         } else {
           router.replace('/(tabs)');
         }

@@ -10,13 +10,13 @@ export default function SetupLayout() {
       }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="welcome" />
       <Stack.Screen name="gender" />
       <Stack.Screen name="age" />
       <Stack.Screen name="weight" />
       <Stack.Screen name="height" />
       <Stack.Screen name="goal" />
       <Stack.Screen name="activity" />
-      <Stack.Screen name="fill-profile" />
     </Stack>
   );
 }

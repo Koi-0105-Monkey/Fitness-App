@@ -70,11 +70,11 @@ export default function ProfileScreen() {
     birthday: 'April 1st',
     weight: data.weight ? `${data.weight} Kg` : '75 Kg',
     age: data.age ? `${data.age}` : '28',
-    height: data.height ? `${data.height} CM` : '1.65 CM',
+    height: data.height ? `${(data.height / 100).toFixed(2)} M` : '1.65 M',
   };
 
   const menuItems = [
-    { icon: 'person-outline' as const,     title: 'Profile',        onPress: () => {} },
+    { icon: 'person-outline' as const,     title: 'Profile',        onPress: () => router.push('/profile/edit' as any) },
     { icon: 'star-outline' as const,        title: 'Favorite',       onPress: () => {} },
     { icon: 'lock-closed-outline' as const, title: 'Privacy Policy', onPress: () => {} },
     { icon: 'settings-outline' as const,    title: 'Settings',       onPress: () => {} },

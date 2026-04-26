@@ -22,7 +22,7 @@ export default function GenderScreen() {
 
       <View style={styles.purpleBanner}>
         <Text style={styles.bannerText}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          To give you a better experience we need to know your gender.
         </Text>
       </View>
 

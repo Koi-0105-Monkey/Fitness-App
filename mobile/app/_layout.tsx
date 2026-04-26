@@ -49,7 +49,7 @@ export default function RootLayout() {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && !isSetupComplete && !inSetupGroup) {
       // Đã đăng nhập nhưng chưa setup profile 7 bước
-      router.replace('/(setup)/gender');
+      router.replace('/(setup)/welcome' as any);
     } else if (isAuthenticated && isSetupComplete && (inAuthGroup || inSetupGroup)) {
       // Đã xong hết → vào app
       router.replace('/(tabs)');
