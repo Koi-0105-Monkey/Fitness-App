@@ -15,6 +15,8 @@ interface Exercise {
   duration: string;
   reps: string;
   videoUrl: string;
+  videoDuration?: string;
+  fitMode?: 'contain' | 'cover';
   description: string;
 }
 
@@ -44,7 +46,7 @@ const DEFAULT_WORKOUT: Workout = {
     {
       roundName: 'Round 1',
       exercises: [
-        { id: Math.random().toString(), name: '', duration: '00:30', reps: '10x', videoUrl: '', description: '' }
+        { id: Math.random().toString(), name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', description: '' }
       ]
     }
   ]
@@ -105,7 +107,7 @@ function App() {
             if (duration) {
               const mins = Math.floor(duration / 60);
               const secs = Math.floor(duration % 60);
-              nextW.rounds[rIdx].exercises[eIdx].duration = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+              nextW.rounds[rIdx].exercises[eIdx].videoDuration = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
           } else {
             nextW.imageUrl = url;
@@ -130,7 +132,7 @@ function App() {
       ...workout,
       rounds: [...workout.rounds, {
         roundName: `Round ${workout.rounds.length + 1}`,
-        exercises: [{ id: Math.random().toString(), name: '', duration: '00:00', reps: '10x', videoUrl: '', description: '' }]
+        exercises: [{ id: Math.random().toString(), name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: '' }]
       }]
     });
   };
@@ -139,7 +141,6 @@ function App() {
     if (workout.rounds.length <= 1) return;
     const nextRounds = workout.rounds.filter((_, i) => i !== idx);
     const nextW = { ...workout, rounds: nextRounds };
-    // nextW.duration = calculateStats(nextW);
     setWorkout(nextW);
   };
 
@@ -147,7 +148,7 @@ function App() {
     const nextRounds = [...workout.rounds];
     nextRounds[rIdx].exercises.push({
       id: Math.random().toString(),
-      name: '', duration: '00:00', reps: '10x', videoUrl: '', description: ''
+      name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: ''
     });
     setWorkout({ ...workout, rounds: nextRounds });
   };
@@ -156,12 +157,12 @@ function App() {
     const nextRounds = [...workout.rounds];
     nextRounds[rIdx].exercises.splice(eIdx, 1);
     const nextW = { ...workout, rounds: nextRounds };
-    // nextW.duration = calculateStats(nextW);
     setWorkout(nextW);
   };
 
   const handleSave = async () => {
     if (!workout.title) return setMessage({ type: 'error', text: 'Vui lòng nhập tên bài tập' });
+    if (!workout.description) return setMessage({ type: 'error', text: 'Vui lòng nhập mô tả bài tập' });
     
     try {
       setLoading(true);
@@ -173,8 +174,10 @@ function App() {
             .filter(ex => ex.name.trim() !== '')
             .map(ex => ({
               ...ex,
-              reps: ex.reps.trim() || '10x',
-              duration: ex.duration.trim() || '00:00'
+              reps: ex.reps.trim(),
+              duration: ex.duration.trim(),
+              videoDuration: ex.videoDuration,
+              fitMode: ex.fitMode || 'contain'
             }))
         })).filter(r => r.exercises.length > 0)
       };
@@ -341,26 +344,60 @@ function App() {
                     }}
                   />
                   <div className="row" style={{ gap: 10 }}>
-                    <input 
-                      className="input" style={{ padding: '8px 12px' }} 
-                      placeholder="Số reps" value={ex.reps}
-                      onChange={(e) => {
-                        const nextR = [...workout.rounds];
-                        nextR[rIdx].exercises[eIdx].reps = e.target.value;
-                        setWorkout({ ...workout, rounds: nextR });
-                      }}
-                    />
-                    <input 
-                      className="input" style={{ padding: '8px 12px' }} 
-                      placeholder="Time" value={ex.duration} 
-                      onChange={(e) => {
-                        const nextR = [...workout.rounds];
-                        nextR[rIdx].exercises[eIdx].duration = e.target.value;
-                        const nextW = { ...workout, rounds: nextR };
-                        nextW.duration = calculateStats(nextW);
-                        setWorkout(nextW);
-                      }}
-                    />
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Sets/Reps</label>
+                      <input 
+                        className="input" style={{ padding: '8px 12px' }} 
+                        placeholder="VD: 15x" value={ex.reps}
+                        onChange={(e) => {
+                          const nextR = [...workout.rounds];
+                          nextR[rIdx].exercises[eIdx].reps = e.target.value;
+                          if (e.target.value) {
+                            nextR[rIdx].exercises[eIdx].duration = ''; // Xoá time nếu nhập reps
+                          }
+                          setWorkout({ ...workout, rounds: nextR });
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Thời gian</label>
+                      <input 
+                        className="input" style={{ padding: '8px 12px' }} 
+                        placeholder="VD: 00:30" value={ex.duration} 
+                        onChange={(e) => {
+                          const nextR = [...workout.rounds];
+                          nextR[rIdx].exercises[eIdx].duration = e.target.value;
+                          if (e.target.value) {
+                            nextR[rIdx].exercises[eIdx].reps = ''; // Xoá reps nếu nhập time
+                          }
+                          const nextW = { ...workout, rounds: nextR };
+                          nextW.duration = calculateStats(nextW);
+                          setWorkout(nextW);
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Chế độ hiển thị</label>
+                      <div className="level-selector">
+                        {[
+                          { id: 'contain', label: 'Xem toàn bộ' },
+                          { id: 'cover', label: 'Lấp đầy khung' }
+                        ].map(f => (
+                          <button 
+                            key={f.id}
+                            className={`level-btn ${ex.fitMode === f.id ? 'active' : ''}`}
+                            style={{ fontSize: '0.7rem', padding: '6px' }}
+                            onClick={() => {
+                              const nextR = [...workout.rounds];
+                              nextR[rIdx].exercises[eIdx].fitMode = f.id as any;
+                              setWorkout({ ...workout, rounds: nextR });
+                            }}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   <textarea 
                     className="textarea" style={{ marginTop: 10, padding: '8px 12px', fontSize: '0.85rem' }} 

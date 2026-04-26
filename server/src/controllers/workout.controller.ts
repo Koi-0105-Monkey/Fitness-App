@@ -22,14 +22,20 @@ export const getWorkouts = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, workouts, 'Lấy danh sách bài tập thành công');
 });
 
-// @desc    Lấy bài tập Training of the day (Random từ top phổ biến)
+// @desc    Lấy bài tập Training of the day (Bài tập mới nhất hoặc ngẫu nhiên từ DB)
 // @route   GET /api/workouts/training-of-day
 // @access  Private
 export const getTrainingOfDay = asyncHandler(async (req: Request, res: Response) => {
-  // Lấy ra danh sách các bài tập phổ biến nhất (ví dụ top 20)
-  const popularWorkouts = await Workout.find().sort({ playsCount: -1 }).limit(20);
+  const { level } = req.query;
+  const filter: any = {};
+  if (level) {
+    filter.level = level;
+  }
+
+  // Ưu tiên lấy những bài tập mới được thêm vào (mới nhất) theo level
+  const recentWorkouts = await Workout.find(filter).sort({ createdAt: -1 }).limit(10);
   
-  if (popularWorkouts.length === 0) {
+  if (recentWorkouts.length === 0) {
     return sendError(res, 'Không có bài tập nào', 404);
   }
 
@@ -40,9 +46,9 @@ export const getTrainingOfDay = asyncHandler(async (req: Request, res: Response)
     seed += today.charCodeAt(i);
   }
 
-  // Chọn bài tập dựa trên seed để giữ tính đồng nhất trong ngày
-  const index = seed % popularWorkouts.length;
-  const trainingOfDay = popularWorkouts[index];
+  // Chọn bài tập dựa trên seed để mỗi ngày đổi 1 bài trong top 10 bài mới nhất
+  const index = seed % recentWorkouts.length;
+  const trainingOfDay = recentWorkouts[index];
 
   sendSuccess(res, trainingOfDay, 'Lấy Training of the day thành công');
 });

@@ -50,7 +50,7 @@ export default function HomeScreen() {
         <View style={styles.categories}>
           <TouchableOpacity 
             style={styles.categoryItem}
-            onPress={() => router.push('/(tabs)/workout')}
+            onPress={() => router.push('/workout')}
           >
             <Ionicons name="barbell" size={32} color={COLORS.accent} />
             <Text style={[styles.categoryText, { color: COLORS.accent }]}>Workout</Text>

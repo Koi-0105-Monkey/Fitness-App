@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
@@ -17,10 +17,12 @@ export default function SplashIndex() {
   const router = useRouter();
   const { checkAuth, isAuthenticated, isSetupComplete, isLoading } = useAuthStore();
   const { loadSetupData } = useSetupStore();
+  const [isMounted, setIsMounted] = useState(false);
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
+    setIsMounted(true);
     // Animate logo in
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
@@ -42,7 +44,7 @@ export default function SplashIndex() {
 
   // Listen to auth state changes to navigate
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !isMounted) return;
 
     if (!isAuthenticated) {
       router.replace('/login');
@@ -51,7 +53,7 @@ export default function SplashIndex() {
     } else {
       router.replace('/(tabs)');
     }
-  }, [isLoading, isAuthenticated, isSetupComplete]);
+  }, [isLoading, isAuthenticated, isSetupComplete, isMounted]);
 
   return (
     <View style={styles.container}>
