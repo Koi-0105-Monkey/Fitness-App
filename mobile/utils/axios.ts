@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ENDPOINTS } from '../constants/endpoints';
 import { getItem, setItem, removeItem } from './storage';
+import { router } from 'expo-router';
 
 const axiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api',
@@ -67,11 +68,21 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError, null);
         await removeItem('accessToken');
         await removeItem('refreshToken');
-        // TODO: Redirect to login — handle in authStore
+        await removeItem('setupComplete');
+        
+        router.replace('/login');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // Handle 500 JWT Expired (Server returns 500 for expired tokens sometimes)
+    if (error.response?.status === 500 && error.response?.data?.message?.includes('jwt expired')) {
+      await removeItem('accessToken');
+      await removeItem('refreshToken');
+      await removeItem('setupComplete');
+      router.replace('/login');
     }
 
     return Promise.reject(error);
