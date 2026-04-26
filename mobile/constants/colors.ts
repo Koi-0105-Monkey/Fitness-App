@@ -13,14 +13,15 @@ export const COLORS = {
   secondaryDark: '#059669',
 
   // Accent
-  accent: '#E2F163',         // Figma yellow/green highlight
-  purple: '#B3A0FF',         // Figma purple banner
+  accent: '#E2F163',         // Yellow-green accent
+  yellow: '#E2F163',
 
   // Backgrounds
-  background: '#232323',     // Figma background
-  backgroundCard: '#333333', 
-  backgroundInput: '#2A2A2A',
-  backgroundModal: '#2A2A2A',
+  background: '#232323',     // Dark gray/black
+  backgroundCard: '#1E293B', // Slate-800
+  backgroundInput: '#FFFFFF',
+  purple: '#B3A0FF',         // Main purple color for cards
+  backgroundModal: '#1E293B',
 
   // Text
   textPrimary: '#F8FAFC',

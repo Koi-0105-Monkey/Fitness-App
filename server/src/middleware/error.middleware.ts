@@ -16,16 +16,35 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction
 ) => {
-  let statusCode = (err as AppError).statusCode ?? 500;
-  let message = err.message ?? 'Internal Server Error';
+  const statusCode = (err as AppError).statusCode ?? 500;
+  const message = err.message ?? 'Internal Server Error';
 
-  // Handle known error types to set correct status code before logging
-  if (err.name === 'ValidationError') statusCode = 400;
-  if (err.name === 'JsonWebTokenError') statusCode = 401;
-  if (err.name === 'TokenExpiredError') statusCode = 401;
+  let finalStatusCode = statusCode;
+  let finalMessage = message;
+
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    finalStatusCode = 400;
+    finalMessage = 'Validation failed';
+  }
+
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    finalStatusCode = 401;
+    finalMessage = 'Invalid token';
+  }
+  if (err.name === 'TokenExpiredError') {
+    finalStatusCode = 401;
+    finalMessage = 'Token expired';
+  }
 
   if (process.env.NODE_ENV === 'development') {
-    console.error(`[ERROR] ${statusCode} — ${message}\n`, err.stack);
+    // Only log 500 errors or non-expected errors to avoid cluttering the terminal
+    if (finalStatusCode === 500) {
+      console.error(`[ERROR] ${finalStatusCode} — ${finalMessage}\n`, err.stack);
+    } else {
+      console.warn(`[WARN] ${finalStatusCode} — ${finalMessage}`);
+    }
   }
 
   // Mongoose validation error
@@ -34,16 +53,8 @@ export const errorMiddleware = (
       field: e.path,
       message: e.message,
     }));
-    return sendError(res, 'Validation failed', 400, errors);
+    return sendError(res, finalMessage, finalStatusCode, errors);
   }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    return sendError(res, 'Invalid token', 401);
-  }
-  if (err.name === 'TokenExpiredError') {
-    return sendError(res, 'Token expired', 401);
-  }
-
-  return sendError(res, message, statusCode);
+  return sendError(res, finalMessage, finalStatusCode);
 };

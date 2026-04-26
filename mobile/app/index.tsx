@@ -32,26 +32,24 @@ export default function SplashIndex() {
       try {
         await loadSetupData(); // Load draft data if any
         await checkAuth();     // Verify token with server
+        
+        // After auth is checked, get the latest state and navigate
+        const { isAuthenticated, isSetupComplete } = useAuthStore.getState();
+        if (!isAuthenticated) {
+          router.replace('/(auth)/login');
+        } else if (!isSetupComplete) {
+          router.replace('/(setup)/gender');
+        } else {
+          router.replace('/(tabs)');
+        }
       } catch (error) {
         console.error('Splash Auth Check Error:', error);
+        router.replace('/(auth)/login');
       }
     }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
-
-  // Listen to auth state changes to navigate
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!isAuthenticated) {
-      router.replace('/login');
-    } else if (!isSetupComplete) {
-      router.replace('/(setup)');
-    } else {
-      router.replace('/(tabs)');
-    }
-  }, [isLoading, isAuthenticated, isSetupComplete]);
 
   return (
     <View style={styles.container}>

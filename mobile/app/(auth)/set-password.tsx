@@ -1,55 +1,22 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert,
-  KeyboardAvoidingView, Platform
+  StyleSheet, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { authService } from '../../services/auth.service';
 import { COLORS } from '../../constants/colors';
 
-export default function ForgotPasswordScreen() {
+export default function SetPasswordScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
 
-  const handleSubmit = async () => {
-    if (!email.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập email');
-      return;
-    }
-    try {
-      setLoading(true);
-      await authService.forgotPassword(email.trim());
-      setSent(true);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'Có lỗi xảy ra';
-      Alert.alert('Lỗi', msg);
-    } finally {
-      setLoading(false);
-    }
+  const handleReset = () => {
+    // Navigate to Set Fingerprint or Login depending on flow
+    router.push('/(auth)/set-fingerprint' as any);
   };
-
-  if (sent) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.container, { paddingHorizontal: 30, justifyContent: 'center' }]}>
-          <Text style={styles.emoji}>📧</Text>
-          <Text style={[styles.title, { textAlign: 'center' }]}>Kiểm tra email của bạn</Text>
-          <Text style={styles.subtitle}>
-            Chúng tôi đã gửi link đặt lại mật khẩu đến{'\n'}
-            <Text style={{ color: COLORS.yellow }}>{email}</Text>
-          </Text>
-          <TouchableOpacity style={styles.continueBtn} onPress={() => router.replace('/(auth)/login')}>
-            <Text style={styles.continueBtnText}>Quay lại đăng nhập</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -63,12 +30,11 @@ export default function ForgotPasswordScreen() {
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Forgot Password</Text>
+            <Text style={styles.headerTitle}>Set Password</Text>
             <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.topSection}>
-            <Text style={styles.title}>Forgot Password?</Text>
             <Text style={styles.subtitle}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </Text>
@@ -77,30 +43,34 @@ export default function ForgotPasswordScreen() {
           
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Enter your email address</Text>
+              <Text style={styles.label}>Password</Text>
               <TextInput
                 style={styles.input}
-                placeholder="example@example.com"
+                placeholder="••••••••••••"
                 placeholderTextColor="#A0A0A0"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirm Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••••••"
+                placeholderTextColor="#A0A0A0"
+                secureTextEntry
+                value={confirm}
+                onChangeText={setConfirm}
               />
             </View>
           </View>
 
           
           <View style={styles.bottomSection}>
-            <TouchableOpacity
-              style={[styles.continueBtn, loading && styles.btnDisabled]}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.continueBtnText}>Continue</Text>
-              }
+            <TouchableOpacity style={styles.continueBtn} onPress={handleReset}>
+              <Text style={styles.continueBtnText}>Reset Password</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -135,13 +105,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    fontFamily: 'Poppins',
-  },
   subtitle: {
     fontSize: 12,
     color: '#A0A0A0',
@@ -157,7 +120,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputGroup: {
-    marginBottom: 0,
+    marginBottom: 20,
   },
   label: {
     color: '#232323',
@@ -192,16 +155,10 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
     marginTop: 10,
   },
-  btnDisabled: { opacity: 0.6 },
   continueBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
     fontFamily: 'Poppins',
-  },
-  emoji: {
-    fontSize: 48,
-    textAlign: 'center',
-    marginBottom: 16,
   },
 });
