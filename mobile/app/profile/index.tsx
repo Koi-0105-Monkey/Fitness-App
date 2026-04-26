@@ -6,6 +6,7 @@ import { COLORS } from '../../constants/colors';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useSetupStore } from '../../store/setupStore';
+import { useAuthStore } from '../../store/authStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -69,11 +70,11 @@ export default function ProfileScreen() {
     birthday: 'April 1st',
     weight: data.weight ? `${data.weight} Kg` : '75 Kg',
     age: data.age ? `${data.age}` : '28',
-    height: data.height ? `${data.height} CM` : '1.65 CM',
+    height: data.height ? `${(data.height / 100).toFixed(2)} M` : '1.65 M',
   };
 
   const menuItems = [
-    { icon: 'person-outline' as const,     title: 'Profile',        onPress: () => {} },
+    { icon: 'person-outline' as const,     title: 'Profile',        onPress: () => router.push('/profile/edit' as any) },
     { icon: 'star-outline' as const,        title: 'Favorite',       onPress: () => {} },
     { icon: 'lock-closed-outline' as const, title: 'Privacy Policy', onPress: () => {} },
     { icon: 'settings-outline' as const,    title: 'Settings',       onPress: () => {} },
@@ -82,11 +83,16 @@ export default function ProfileScreen() {
       icon: 'log-out-outline' as const,
       title: 'Logout',
       onPress: async () => {
+        // Clear all local data
         await SecureStore.deleteItemAsync('accessToken');
         await SecureStore.deleteItemAsync('refreshToken');
         await SecureStore.deleteItemAsync('setupComplete');
         await SecureStore.deleteItemAsync('setupData');
+        
+        // Clear zustand stores
         useSetupStore.getState().clearData();
+        await useAuthStore.getState().logout();
+        
         router.replace('/(auth)/login' as any);
       },
     },

@@ -48,7 +48,7 @@ export default function AgeScreen() {
 
       <Text style={styles.title}>How Old Are You?</Text>
       <Text style={styles.subtitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Please provide your age so we can better understand your physical characteristics.
       </Text>
 
       <View style={styles.selectionArea}>

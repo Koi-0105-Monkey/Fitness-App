@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useSetupStore } from '../../store/setupStore';
+import { useAuthStore } from '../../store/authStore';
 
 type ActivityLevel = 'Beginner' | 'Intermediate' | 'Advance';
 
@@ -24,7 +25,7 @@ export default function ActivityScreen() {
 
       <Text style={styles.title}>Physical Activity Level</Text>
       <Text style={styles.subtitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Choose your current activity level to help us calculate your daily calorie and nutrition needs accurately.
       </Text>
 
       <View style={styles.levelsContainer}>
@@ -46,16 +47,24 @@ export default function ActivityScreen() {
 
       <TouchableOpacity 
         style={styles.continueButton}
-        onPress={() => {
+        onPress={async () => {
           let mappedLevel = 'advanced';
           if (selectedLevel === 'Beginner') mappedLevel = 'beginner';
           if (selectedLevel === 'Intermediate') mappedLevel = 'intermediate';
           
           useSetupStore.getState().updateData({ activityLevel: mappedLevel });
-          router.push('/(setup)/fill-profile' as any);
+          
+          try {
+            // FINAL STEP: Submit everything to server and mark setup complete
+            await useSetupStore.getState().submitSetup();
+            useAuthStore.getState().completeSetup();
+            router.replace('/(tabs)' as any);
+          } catch (error) {
+            Alert.alert('Error', 'Failed to save setup data');
+          }
         }}
       >
-        <Text style={styles.continueButtonText}>Continue</Text>
+        <Text style={styles.continueButtonText}>Finish</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
