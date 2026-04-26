@@ -21,13 +21,13 @@ export default function SetFingerprintScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header section */}
+        
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Set Your Fingerprint</Text>
-          <View style={{ width: 24 }} /> {/* Spacer */}
+          <Text style={styles.headerTitle}>Set Fingerprint</Text>
+          <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.topSection}>
@@ -36,12 +36,12 @@ export default function SetFingerprintScreen() {
           </Text>
         </View>
 
-        {/* Fingerprint section in purple */}
+        
         <View style={styles.formSection}>
           <Ionicons name="finger-print-outline" size={150} color="#FFFFFF" style={styles.fingerprintIcon} />
         </View>
 
-        {/* Bottom section */}
+        
         <View style={styles.bottomSection}>
           <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
             <Text style={styles.skipBtnText}>Skip</Text>

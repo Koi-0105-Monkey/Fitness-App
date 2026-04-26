@@ -6,6 +6,7 @@ import { COLORS } from '../../constants/colors';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useSetupStore } from '../../store/setupStore';
+import { useAuthStore } from '../../store/authStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -82,11 +83,16 @@ export default function ProfileScreen() {
       icon: 'log-out-outline' as const,
       title: 'Logout',
       onPress: async () => {
+        // Clear all local data
         await SecureStore.deleteItemAsync('accessToken');
         await SecureStore.deleteItemAsync('refreshToken');
         await SecureStore.deleteItemAsync('setupComplete');
         await SecureStore.deleteItemAsync('setupData');
+        
+        // Clear zustand stores
         useSetupStore.getState().clearData();
+        await useAuthStore.getState().logout();
+        
         router.replace('/(auth)/login' as any);
       },
     },

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import { useSetupStore } from '../../store/setupStore';
+import { useAuthStore } from '../../store/authStore';
 
 export default function FillProfileScreen() {
   const router = useRouter();
@@ -60,6 +61,10 @@ export default function FillProfileScreen() {
       
       // submitSetup() saves all data to SecureStore + marks setupComplete
       await useSetupStore.getState().submitSetup();
+      
+      // Update auth store so layout middleware knows setup is complete
+      useAuthStore.getState().completeSetup();
+      
       router.replace('/(tabs)' as any);
     } catch {
       Alert.alert('Lỗi', 'Không thể lưu thông tin. Thử lại.');

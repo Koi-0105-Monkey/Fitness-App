@@ -80,23 +80,22 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.container} bounces={false} keyboardShouldPersistTaps="handled">
-          {/* Header section */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Log In</Text>
-            <View style={{ width: 24 }} /> {/* Spacer */}
+            <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.topSection}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.subtitle}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              Log in to track your workout progress, set new goals, and achieve your dream body.
             </Text>
           </View>
 
-          {/* Form section in purple */}
+          
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Username or email</Text>
@@ -131,7 +130,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Bottom section */}
+          
           <View style={styles.bottomSection}>
             <TouchableOpacity
               style={[styles.loginBtn, loading && styles.btnDisabled]}

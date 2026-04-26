@@ -81,26 +81,25 @@ export default function RegisterScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.container} bounces={false} keyboardShouldPersistTaps="handled">
-          {/* Header section */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Create Account</Text>
-            <View style={{ width: 24 }} /> {/* Spacer */}
+            <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.topSection}>
             <Text style={styles.title}>Let's Start!</Text>
           </View>
 
-          {/* Form section in purple */}
+          
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="example@example.com"
+                placeholder="Nguyen Van A"
                 placeholderTextColor="#A0A0A0"
                 autoCapitalize="words"
                 value={fullName}
@@ -109,10 +108,10 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email or Mobile Number</Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder="+123 567 89000"
+                placeholder="example@gmail.com"
                 placeholderTextColor="#A0A0A0"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -146,7 +145,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Bottom section */}
+          
           <View style={styles.bottomSection}>
             <Text style={styles.termsText}>
               By continuing, you agree to{'\n'}

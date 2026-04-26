@@ -57,13 +57,13 @@ export default function ForgotPasswordScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.container}>
-          {/* Header section */}
+          
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Forgotten Password</Text>
-            <View style={{ width: 24 }} /> {/* Spacer */}
+            <Text style={styles.headerTitle}>Forgot Password</Text>
+            <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.topSection}>
@@ -73,7 +73,7 @@ export default function ForgotPasswordScreen() {
             </Text>
           </View>
 
-          {/* Form section in purple */}
+          
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Enter your email address</Text>
@@ -89,7 +89,7 @@ export default function ForgotPasswordScreen() {
             </View>
           </View>
 
-          {/* Bottom section */}
+          
           <View style={styles.bottomSection}>
             <TouchableOpacity
               style={[styles.continueBtn, loading && styles.btnDisabled]}

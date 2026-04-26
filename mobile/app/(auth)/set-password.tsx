@@ -24,13 +24,13 @@ export default function SetPasswordScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.container}>
-          {/* Header section */}
+          
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Set Password</Text>
-            <View style={{ width: 24 }} /> {/* Spacer */}
+            <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.topSection}>
@@ -39,7 +39,7 @@ export default function SetPasswordScreen() {
             </Text>
           </View>
 
-          {/* Form section in purple */}
+          
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
@@ -66,7 +66,7 @@ export default function SetPasswordScreen() {
             </View>
           </View>
 
-          {/* Bottom section */}
+          
           <View style={styles.bottomSection}>
             <TouchableOpacity style={styles.continueBtn} onPress={handleReset}>
               <Text style={styles.continueBtnText}>Reset Password</Text>
