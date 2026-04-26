@@ -20,7 +20,7 @@ interface SetupData {
 interface SetupStore {
   data: SetupData;
   updateData: (partial: Partial<SetupData>) => void;
-  clearData: () => void;
+  clearData: () => Promise<void>;
   submitSetup: () => Promise<void>;
   loadSetupData: () => Promise<void>;
 }
@@ -30,7 +30,11 @@ export const useSetupStore = create<SetupStore>((set, get) => ({
 
   updateData: (partial) => set((state) => ({ data: { ...state.data, ...partial } })),
   
-  clearData: () => set({ data: {} }),
+  clearData: async () => {
+    await SecureStore.deleteItemAsync('setupData');
+    await SecureStore.deleteItemAsync('setupComplete');
+    set({ data: {} });
+  },
 
   submitSetup: async () => {
     const { data } = get();

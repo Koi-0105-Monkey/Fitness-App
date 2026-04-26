@@ -4,6 +4,7 @@ import { AuthTokens } from '../types/api.types';
 import { setItem, removeItem, getItem } from '../utils/storage';
 import axiosInstance from '../utils/axios';
 import { ENDPOINTS } from '../constants/endpoints';
+import { useSetupStore } from './setupStore';
 
 interface AuthState {
   user: User | null;
@@ -41,6 +42,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     await removeItem('accessToken');
     await removeItem('refreshToken');
+    
+    // Clear other stores to prevent data leakage
+    await useSetupStore.getState().clearData();
+    
     set({
       user: null,
       accessToken: null,
@@ -75,7 +80,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isSetupComplete: data.data.isSetupComplete,
       });
     } catch {
-      set({ isAuthenticated: false, user: null });
+      set({ 
+        isAuthenticated: false, 
+        user: null, 
+        accessToken: null, 
+        isSetupComplete: false 
+      });
     } finally {
       set({ isLoading: false });
     }
