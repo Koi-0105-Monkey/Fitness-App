@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView,
-  Platform, ScrollView,
+  Platform, ScrollView, SafeAreaView
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/auth.service';
+import { COLORS } from '../../constants/colors';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,14 +54,16 @@ export default function LoginScreen() {
         };
         await SecureStore.setItemAsync('setupData', JSON.stringify(userDataToSave));
         
+        // Also update zustand
+        await login(tokens, user);
         router.replace('/(tabs)' as any);
       } else {
         await SecureStore.setItemAsync('setupComplete', 'false');
+        await login(tokens, user);
         router.replace('/(setup)/gender' as any);
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      // Fallback to local mock for dev if API fails (optional, but good for UX if server is offline)
       Alert.alert(
         'Lỗi',
         err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra API.'
@@ -67,143 +74,232 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#212020' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.headerSection}>
-          <View style={styles.iconCircle}>
-            <Text style={styles.iconEmoji}>💪</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container} bounces={false} keyboardShouldPersistTaps="handled">
+          {/* Header section */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color={COLORS.yellow} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Log In</Text>
+            <View style={{ width: 24 }} /> {/* Spacer */}
           </View>
-          <Text style={styles.title}>Chào mừng trở lại 👋</Text>
-          <Text style={styles.subtitle}>Đăng nhập vào tài khoản của bạn</Text>
-        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <View style={styles.topSection}>
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.subtitle}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </Text>
+          </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Mật khẩu"
-          placeholderTextColor="#888"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          {/* Form section in purple */}
+          <View style={styles.formSection}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Username or email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="example@example.com"
+                placeholderTextColor="#A0A0A0"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
 
-        <TouchableOpacity
-          style={styles.forgotBtn}
-          onPress={() => router.push('/(auth)/forgot-password' as any)}
-        >
-          <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-        </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••••••"
+                placeholderTextColor="#A0A0A0"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
 
-        <TouchableOpacity
-          style={[styles.btn, loading && styles.btnDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.btnText}>Đăng nhập</Text>
-          }
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={() => router.push('/(auth)/forgot-password' as any)}
+            >
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.row}>
-          <Text style={styles.rowText}>Chưa có tài khoản? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register' as any)}>
-            <Text style={styles.link}>Đăng ký</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Bottom section */}
+          <View style={styles.bottomSection}>
+            <TouchableOpacity
+              style={[styles.loginBtn, loading && styles.btnDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.loginBtnText}>Log In</Text>
+              }
+            </TouchableOpacity>
+
+            <Text style={styles.orText}>or sign up with</Text>
+
+            <View style={styles.socialRow}>
+              <TouchableOpacity style={styles.socialBtn}>
+                <Ionicons name="logo-google" size={20} color="#232323" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialBtn}>
+                <Ionicons name="logo-facebook" size={20} color="#232323" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialBtn}>
+                <Ionicons name="finger-print" size={20} color="#232323" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.signupRow}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/register' as any)}>
+                <Text style={styles.signupLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  keyboardView: { flex: 1 },
+  container: { flexGrow: 1 },
+  
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 40,
   },
-  headerSection: {
+  backButton: { padding: 4 },
+  headerTitle: {
+    color: COLORS.yellow,
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Poppins',
+  },
+  
+  topSection: {
+    paddingHorizontal: 30,
     alignItems: 'center',
     marginBottom: 40,
   },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#B3A0FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  iconEmoji: {
-    fontSize: 36,
-  },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '700',
-    color: 'white',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    marginBottom: 16,
+    fontFamily: 'Poppins',
   },
   subtitle: {
+    fontSize: 12,
+    color: '#A0A0A0',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontFamily: 'League Spartan',
+  },
+
+  formSection: {
+    backgroundColor: COLORS.purple,
+    paddingHorizontal: 30,
+    paddingVertical: 40,
+    width: '100%',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    color: '#232323',
     fontSize: 14,
-    color: '#888',
+    fontWeight: '500',
+    marginBottom: 8,
+    fontFamily: 'League Spartan',
   },
   input: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 100,
+    paddingHorizontal: 20,
+    height: 50,
     fontSize: 15,
-    color: 'white',
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#444',
+    color: '#232323',
   },
   forgotBtn: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginTop: -5,
   },
   forgotText: {
-    color: '#B3A0FF',
-    fontSize: 14,
+    color: '#232323',
+    fontSize: 12,
+    fontWeight: '500',
   },
-  btn: {
-    backgroundColor: '#B3A0FF',
-    borderRadius: 100,
-    padding: 16,
+
+  bottomSection: {
+    paddingHorizontal: 30,
+    paddingVertical: 40,
     alignItems: 'center',
-    marginBottom: 24,
+    backgroundColor: COLORS.background,
   },
-  btnDisabled: {
-    opacity: 0.6,
+  loginBtn: {
+    backgroundColor: '#232323',
+    borderRadius: 100,
+    width: 178,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    marginBottom: 30,
   },
-  btnText: {
-    color: '#fff',
+  btnDisabled: { opacity: 0.6 },
+  loginBtnText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: 'Poppins',
   },
-  row: {
+  orText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginBottom: 20,
+    fontFamily: 'League Spartan',
+  },
+  socialRow: {
     flexDirection: 'row',
+    gap: 16,
+    marginBottom: 40,
+  },
+  socialBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  rowText: {
-    color: '#888',
-    fontSize: 14,
+  signupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  link: {
-    color: '#E2F163',
-    fontSize: 14,
+  signupText: {
+    color: '#A0A0A0',
+    fontSize: 12,
+  },
+  signupLink: {
+    color: COLORS.yellow,
+    fontSize: 12,
     fontWeight: '600',
   },
 });
