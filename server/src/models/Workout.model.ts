@@ -5,8 +5,9 @@ export type WorkoutLevel = 'beginner' | 'intermediate' | 'advanced';
 // Interface cho Bài tập nhỏ (Exercise)
 export interface IExercise {
   name: string;
+  sets?: number; // Số hiệp (mặc định là 1)
   duration: string; // VD: '00:30' hoặc '30 seconds' (Dùng đếm ngược)
-  reps: string; // VD: 'repetition 3x' hoặc '3 Rep'
+  reps: string; // VD: '12 reps' hoặc '10 each leg'
   videoUrl?: string; // Link phát video bài tập
   videoDuration?: string; // Thời lượng video (hiển thị cho user biết video dài bao lâu)
   fitMode?: 'contain' | 'cover'; // Chế độ hiển thị video
@@ -34,6 +35,7 @@ export interface IWorkout extends Document {
 
 const ExerciseSchema = new Schema<IExercise>({
   name: { type: String, required: true },
+  sets: { type: Number, default: 1 },
   duration: { type: String, default: '' },
   reps: { type: String, default: '' },
   videoUrl: { type: String },

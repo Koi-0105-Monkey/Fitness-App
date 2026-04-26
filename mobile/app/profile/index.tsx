@@ -75,7 +75,7 @@ export default function ProfileScreen() {
 
   const menuItems = [
     { icon: 'person-outline' as const,     title: 'Profile',        onPress: () => router.push('/profile/edit' as any) },
-    { icon: 'star-outline' as const,        title: 'Favorite',       onPress: () => {} },
+    { icon: 'star-outline' as const,        title: 'Favorite',       onPress: () => router.push('/profile/favorite' as any) },
     { icon: 'lock-closed-outline' as const, title: 'Privacy Policy', onPress: () => {} },
     { icon: 'settings-outline' as const,    title: 'Settings',       onPress: () => {} },
     { icon: 'headset-outline' as const,     title: 'Help',           onPress: () => {} },

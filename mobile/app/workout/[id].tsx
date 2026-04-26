@@ -114,14 +114,18 @@ export default function WorkoutDetailScreen() {
                     {(ex.duration || ex.videoDuration) ? (
                       <View style={styles.timeRow}>
                         <Ionicons name="time" size={12} color="#B3A0FF" />
-                        <Text style={styles.exDuration}>{ex.duration || ex.videoDuration}</Text>
+                        <Text style={styles.exDuration}>
+                          {ex.sets && ex.sets > 1 ? `${ex.sets} sets x ` : ''}{ex.duration || ex.videoDuration}
+                        </Text>
                       </View>
                     ) : null}
                   </View>
 
                 {ex.reps ? (
                   <View style={styles.exRepsContainer}>
-                    <Text style={styles.exReps}>{ex.reps}</Text>
+                    <Text style={styles.exReps}>
+                      {ex.sets && ex.sets > 1 ? `${ex.sets} sets x ` : ''}{ex.reps}
+                    </Text>
                   </View>
                 ) : null}
 

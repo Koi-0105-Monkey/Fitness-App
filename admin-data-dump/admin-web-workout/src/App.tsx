@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   Plus, Trash2, Image as ImageIcon, Video, 
-  CheckCircle2, AlertCircle, Dumbbell, Clock, 
-  Flame, ChevronRight, Save, Loader2 
+  CheckCircle2, AlertCircle, Dumbbell, 
+  ChevronRight, Save, Loader2 
 } from 'lucide-react';
 import './App.css';
 
@@ -12,6 +12,7 @@ const API_BASE = 'http://localhost:5000/api';
 interface Exercise {
   id: string;
   name: string;
+  sets: number;
   duration: string;
   reps: string;
   videoUrl: string;
@@ -46,7 +47,7 @@ const DEFAULT_WORKOUT: Workout = {
     {
       roundName: 'Round 1',
       exercises: [
-        { id: Math.random().toString(), name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', description: '' }
+        { id: Math.random().toString(), name: '', sets: 1, duration: '', reps: '', videoUrl: '', videoDuration: '', description: '' }
       ]
     }
   ]
@@ -71,8 +72,9 @@ function App() {
     let totalSecs = 0;
     w.rounds.forEach(r => r.exercises.forEach(ex => {
       const parts = ex.duration.split(':');
+      const sets = Number(ex.sets) || 1;
       if (parts.length === 2) {
-        totalSecs += (parseInt(parts[0]) * 60) + parseInt(parts[1]);
+        totalSecs += ((parseInt(parts[0]) * 60) + parseInt(parts[1])) * sets;
       }
     }));
     return Math.ceil(totalSecs / 60) || 1;
@@ -113,7 +115,7 @@ function App() {
             nextW.imageUrl = url;
           }
 
-          // nextW.duration = calculateStats(nextW);
+          nextW.duration = calculateStats(nextW);
           return nextW;
         });
 
@@ -132,7 +134,7 @@ function App() {
       ...workout,
       rounds: [...workout.rounds, {
         roundName: `Round ${workout.rounds.length + 1}`,
-        exercises: [{ id: Math.random().toString(), name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: '' }]
+        exercises: [{ id: Math.random().toString(), name: '', sets: 1, duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: '' }]
       }]
     });
   };
@@ -148,7 +150,7 @@ function App() {
     const nextRounds = [...workout.rounds];
     nextRounds[rIdx].exercises.push({
       id: Math.random().toString(),
-      name: '', duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: ''
+      name: '', sets: 1, duration: '', reps: '', videoUrl: '', videoDuration: '', fitMode: 'contain', description: ''
     });
     setWorkout({ ...workout, rounds: nextRounds });
   };
@@ -174,6 +176,7 @@ function App() {
             .filter(ex => ex.name.trim() !== '')
             .map(ex => ({
               ...ex,
+              sets: Number(ex.sets) || 1,
               reps: ex.reps.trim(),
               duration: ex.duration.trim(),
               videoDuration: ex.videoDuration,
@@ -194,7 +197,7 @@ function App() {
         ...DEFAULT_WORKOUT,
         rounds: [{
           roundName: 'Round 1',
-          exercises: [{ id: Math.random().toString(), name: '', duration: '00:00', reps: '10x', videoUrl: '', description: '' }]
+          exercises: [{ id: Math.random().toString(), name: '', sets: 1, duration: '', reps: '', videoUrl: '', fitMode: 'contain', description: '' }]
         }]
       });
     } catch (error: any) {
@@ -344,16 +347,28 @@ function App() {
                     }}
                   />
                   <div className="row" style={{ gap: 10 }}>
+                    <div style={{ flex: 0.5 }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Sets</label>
+                      <input 
+                        className="input" style={{ padding: '8px 12px' }} type="number"
+                        placeholder="1" value={ex.sets}
+                        onChange={(e) => {
+                          const nextR = [...workout.rounds];
+                          nextR[rIdx].exercises[eIdx].sets = parseInt(e.target.value) || 1;
+                          setWorkout({ ...workout, rounds: nextR });
+                        }}
+                      />
+                    </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Sets/Reps</label>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Reps (Lần)</label>
                       <input 
                         className="input" style={{ padding: '8px 12px' }} 
-                        placeholder="VD: 15x" value={ex.reps}
+                        placeholder="VD: 12x" value={ex.reps}
                         onChange={(e) => {
                           const nextR = [...workout.rounds];
                           nextR[rIdx].exercises[eIdx].reps = e.target.value;
                           if (e.target.value) {
-                            nextR[rIdx].exercises[eIdx].duration = ''; // Xoá time nếu nhập reps
+                            nextR[rIdx].exercises[eIdx].duration = ''; 
                           }
                           setWorkout({ ...workout, rounds: nextR });
                         }}
@@ -368,7 +383,7 @@ function App() {
                           const nextR = [...workout.rounds];
                           nextR[rIdx].exercises[eIdx].duration = e.target.value;
                           if (e.target.value) {
-                            nextR[rIdx].exercises[eIdx].reps = ''; // Xoá reps nếu nhập time
+                            nextR[rIdx].exercises[eIdx].reps = ''; 
                           }
                           const nextW = { ...workout, rounds: nextR };
                           nextW.duration = calculateStats(nextW);

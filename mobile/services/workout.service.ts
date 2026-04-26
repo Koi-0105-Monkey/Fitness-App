@@ -4,10 +4,12 @@ import { ENDPOINTS } from '../constants/endpoints';
 export interface Exercise {
   _id: string;
   name: string;
+  sets?: number;
   duration?: string;
   reps?: string;
   videoUrl?: string;
   videoDuration?: string;
+  fitMode?: 'contain' | 'cover';
   description?: string;
 }
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -66,7 +66,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Slot />
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(setup)" />
+        <Stack.Screen name="workout/[id]" />
+        <Stack.Screen name="workout/exercise/[id]" />
+        <Stack.Screen name="workout/success/[id]" />
+        <Stack.Screen name="recommendations" />
+        <Stack.Screen name="resources/[id]" />
+      </Stack>
     </SafeAreaProvider>
   );
 }

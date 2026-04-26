@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { workoutService, Workout } from '../../services/workout.service';
 import { COLORS } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useFavoriteStore } from '../../store/favoriteStore';
 
 const { width } = Dimensions.get('window');
 const LEVELS = ['beginner', 'intermediate', 'advanced'];
@@ -19,9 +20,32 @@ export default function WorkoutScreen() {
   const [trainingOfDay, setTrainingOfDay] = useState<Workout | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const toggleFavorite = useFavoriteStore(state => state.toggleFavorite);
+  const isFavorite = useFavoriteStore(state => state.isFavorite);
+  const fetchFavorites = useFavoriteStore(state => state.fetchFavorites);
+
+  const handleToggleFavorite = async (workoutId: string) => {
+    const nowFav = isFavorite(workoutId);
+    await toggleFavorite(workoutId);
+    if (!nowFav) {
+      showToast('Added to favorites ❤️');
+    } else {
+      showToast('Removed from favorites 💔');
+    }
+  };
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2000);
+  };
 
   useEffect(() => {
     fetchData();
+    fetchFavorites(); // Tải danh sách favorites để highlight icon sao đúng
   }, [activeLevel]);
 
   const fetchData = async () => {
@@ -118,9 +142,16 @@ export default function WorkoutScreen() {
                           <Text style={styles.todStatText}>{trainingOfDay.exercisesCount} Exercises</Text>
                         </View>
                       </View>
-                      <View style={styles.starIconContainer}>
-                        <Ionicons name="star" size={24} color="white" />
-                      </View>
+                      <TouchableOpacity 
+                        style={styles.starIconContainer}
+                        onPress={() => handleToggleFavorite(trainingOfDay._id)}
+                      >
+                        <Ionicons 
+                          name={isFavorite(trainingOfDay._id) ? "star" : "star-outline"} 
+                          size={24} 
+                          color={isFavorite(trainingOfDay._id) ? "#E2F163" : "white"} 
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -160,9 +191,19 @@ export default function WorkoutScreen() {
                     </View>
                     <View style={styles.workoutCardImageContainer}>
                       <Image source={{ uri: item.imageUrl || 'https://placehold.co/150x120' }} style={styles.workoutCardImage} />
-                      <View style={styles.smallStarContainer}>
-                        <Ionicons name="star" size={16} color="#E2F163" />
-                      </View>
+                      <TouchableOpacity 
+                        style={styles.smallStarContainer}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleToggleFavorite(item._id);
+                        }}
+                      >
+                        <Ionicons 
+                          name={isFavorite(item._id) ? "star" : "star-outline"} 
+                          size={18} 
+                          color={isFavorite(item._id) ? "#E2F163" : "white"} 
+                        />
+                      </TouchableOpacity>
                     </View>
                   </TouchableOpacity>
                 ))}
@@ -171,6 +212,13 @@ export default function WorkoutScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Simple Toast */}
+      {toastMessage && (
+        <View style={styles.toastContainer}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -221,5 +269,25 @@ const styles = StyleSheet.create({
   
   workoutCardImageContainer: { width: 140, height: '100%', position: 'relative' },
   workoutCardImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  smallStarContainer: { position: 'absolute', top: 12, right: 12 }
+  smallStarContainer: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(33, 32, 32, 0.4)', padding: 6, borderRadius: 20 },
+  
+  toastContainer: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#896CFE',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  }
 });

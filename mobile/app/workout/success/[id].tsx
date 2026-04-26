@@ -16,14 +16,6 @@ export default function SuccessScreen() {
     }
   }, [id]);
 
-  if (!workout) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#E2F163" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -34,8 +26,8 @@ export default function SuccessScreen() {
       </View>
 
       <View style={styles.content}>
-        {/* Animated Celebration GIF */}
-        <View style={[styles.imageContainer, { borderWidth: 0, borderColor: 'red' }]}>
+        {/* Animated Celebration GIF - Rendered immediately */}
+        <View style={styles.imageContainer}>
           <Image 
             source={{ uri: 'https://i.gifer.com/7S79.gif' }} 
             style={styles.trophyAnimation} 
@@ -43,41 +35,47 @@ export default function SuccessScreen() {
           />
         </View>
 
-        {/* Info Card */}
-        <View style={styles.card}>
-          <Text style={styles.title}>Congratulations!</Text>
-          
-          <View style={styles.statsPill}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workout.duration} Mins</Text>
-              <Ionicons name="time" size={12} color="#212020" />
+        {!workout ? (
+          <ActivityIndicator size="large" color="#E2F163" style={{ marginTop: 50 }} />
+        ) : (
+          <>
+            {/* Info Card */}
+            <View style={styles.card}>
+              <Text style={styles.title}>Congratulations!</Text>
+              
+              <View style={styles.statsPill}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{workout.duration} Mins</Text>
+                  <Ionicons name="time" size={12} color="#212020" />
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{workout.calories} Calories</Text>
+                  <Ionicons name="flame" size={12} color="#212020" />
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{workout.level.charAt(0).toUpperCase() + workout.level.slice(1)}</Text>
+                  <Ionicons name="walk" size={12} color="#212020" />
+                </View>
+              </View>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workout.calories} Calories</Text>
-              <Ionicons name="flame" size={12} color="#212020" />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workout.level.charAt(0).toUpperCase() + workout.level.slice(1)}</Text>
-              <Ionicons name="walk" size={12} color="#212020" />
-            </View>
-          </View>
-        </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actions}>
-          <TouchableOpacity 
-            style={styles.btnPurple}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.btnPurpleText}>Go to the next workout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.btnYellow}
-            onPress={() => router.replace('/(tabs)')}
-          >
-            <Text style={styles.btnYellowText}>Home</Text>
-          </TouchableOpacity>
-        </View>
+            {/* Action Buttons */}
+            <View style={styles.actions}>
+              <TouchableOpacity 
+                style={styles.btnPurple}
+                onPress={() => router.back()}
+              >
+                <Text style={styles.btnPurpleText}>Go to the next workout</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.btnYellow}
+                onPress={() => router.replace('/(tabs)')}
+              >
+                <Text style={styles.btnYellowText}>Home</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

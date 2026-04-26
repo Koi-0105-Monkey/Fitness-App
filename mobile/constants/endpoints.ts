@@ -27,11 +27,17 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: `${BASE}/auth/change-password`,
   },
 
+  // Favorites
+  FAVORITE: {
+    LIST: `${BASE}/favorites`,
+    TOGGLE: `${BASE}/favorites/toggle`,
+    CHECK: (workoutId: string) => `${BASE}/favorites/check/${workoutId}`,
+  },
+
   // User
   USER: {
     ME: `${BASE}/users/me`,
     AVATAR: `${BASE}/users/avatar`,
-    FAVORITES: `${BASE}/users/me/favorites`,
   },
 
   // Workout
@@ -39,6 +45,13 @@ export const ENDPOINTS = {
     LIST: `${BASE}/workouts`,
     DETAIL: (id: string) => `${BASE}/workouts/${id}`,
     TRAINING_OF_DAY: `${BASE}/workouts/training-of-day`,
+    RECOMMENDATIONS: `${BASE}/workouts/recommendations`,
+  },
+
+  // Resources
+  RESOURCE: {
+    LIST: `${BASE}/resources`,
+    DETAIL: (id: string) => `${BASE}/resources/${id}`,
   },
 
   // Progress

@@ -25,14 +25,15 @@ export default function ExerciseDetailScreen() {
   const isWorkoutCompleted = useWorkoutProgressStore(state => state.isWorkoutCompleted);
 
   // Initialize player
-  const player = useVideoPlayer({ uri: exercise?.videoUrl || '' });
+  const player = useVideoPlayer(exercise?.videoUrl || '');
 
   useEffect(() => {
-    if (player) {
+    if (player && exercise?.videoUrl) {
+      player.replace(exercise.videoUrl);
       player.loop = true;
       player.play();
     }
-  }, [player, exercise?.videoUrl]);
+  }, [exercise?.videoUrl]);
 
   useEffect(() => {
     if (id && exerciseId) {
@@ -71,34 +72,6 @@ export default function ExerciseDetailScreen() {
     }
     return parseInt(durationStr) || 0;
   };
-
-  const handleStart = () => {
-    setIsStarted(true);
-    const secs = getSeconds(exercise?.duration);
-    if (secs > 0 && (!exercise?.reps || exercise?.reps.toLowerCase().includes('x') === false)) {
-      setIsTimed(true);
-      setTimeLeft(secs);
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearTimer();
-            // Đừng gọi handleComplete ở đây
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      setIsTimed(false);
-    }
-  };
-
-  // Tự động hoàn thành khi đếm ngược về 0
-  useEffect(() => {
-    if (isTimed && isStarted && timeLeft === 0) {
-      handleComplete();
-    }
-  }, [timeLeft, isTimed, isStarted]);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -142,6 +115,34 @@ export default function ExerciseDetailScreen() {
     const s = (secs % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
+
+  const handleStart = () => {
+    setIsStarted(true);
+    const secs = getSeconds(exercise?.duration);
+    if (secs > 0 && (!exercise?.reps || exercise?.reps.toLowerCase().includes('x') === false)) {
+      setIsTimed(true);
+      setTimeLeft(secs);
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearTimer();
+            // Đừng gọi handleComplete ở đây
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setIsTimed(false);
+    }
+  };
+
+  // Tự động hoàn thành khi đếm ngược về 0
+  useEffect(() => {
+    if (isTimed && isStarted && timeLeft === 0) {
+      handleComplete();
+    }
+  }, [timeLeft, isTimed, isStarted]);
 
   if (loading) return (
     <SafeAreaView style={[styles.container, { justifyContent: 'center' }]}>
@@ -210,16 +211,26 @@ export default function ExerciseDetailScreen() {
             </Text>
             
             <View style={styles.statsPill}>
+              {exercise.sets && exercise.sets > 1 ? (
+                <View style={styles.statItem}>
+                  <Ionicons name="repeat" size={14} color="#212020" />
+                  <Text style={styles.statText}>{exercise.sets} Sets</Text>
+                </View>
+              ) : null}
               {(exercise.duration || exercise.videoDuration) ? (
                 <View style={styles.statItem}>
                   <Ionicons name="time" size={14} color="#212020" />
-                  <Text style={styles.statText}>{exercise.duration || exercise.videoDuration}</Text>
+                  <Text style={styles.statText}>
+                    {exercise.sets && exercise.sets > 1 ? 'x ' : ''}{exercise.duration || exercise.videoDuration}
+                  </Text>
                 </View>
               ) : null}
               {exercise.reps ? (
                 <View style={styles.statItem}>
                   <Ionicons name="flame" size={14} color="#212020" />
-                  <Text style={styles.statText}>{exercise.reps}</Text>
+                  <Text style={styles.statText}>
+                    {exercise.sets && exercise.sets > 1 ? 'x ' : ''}{exercise.reps}
+                  </Text>
                 </View>
               ) : null}
               <View style={styles.statItem}>
