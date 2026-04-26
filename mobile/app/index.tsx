@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { useAuthStore } from '../store/authStore';
+import { useSetupStore } from '../store/setupStore';
 
 /**
  * This IS the splash screen.
@@ -14,6 +15,8 @@ import * as SecureStore from 'expo-secure-store';
  */
 export default function SplashIndex() {
   const router = useRouter();
+  const { checkAuth, isAuthenticated, isSetupComplete, isLoading } = useAuthStore();
+  const { loadSetupData } = useSetupStore();
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.8)).current;
 
@@ -24,26 +27,31 @@ export default function SplashIndex() {
       Animated.spring(scale, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }),
     ]).start();
 
-    // After 2.5 seconds, decide where to go
+    // After animation, verify session
     const timer = setTimeout(async () => {
       try {
-        const token = await SecureStore.getItemAsync('accessToken');
-        const setupDone = await SecureStore.getItemAsync('setupComplete');
-
-        if (!token) {
-          router.replace('/(auth)/login' as any);
-        } else if (setupDone !== 'true') {
-          router.replace('/(setup)/gender' as any);
-        } else {
-          router.replace('/(tabs)' as any);
-        }
-      } catch {
-        router.replace('/(auth)/login' as any);
+        await loadSetupData(); // Load draft data if any
+        await checkAuth();     // Verify token with server
+      } catch (error) {
+        console.error('Splash Auth Check Error:', error);
       }
-    }, 2500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Listen to auth state changes to navigate
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      router.replace('/login');
+    } else if (!isSetupComplete) {
+      router.replace('/(setup)');
+    } else {
+      router.replace('/(tabs)');
+    }
+  }, [isLoading, isAuthenticated, isSetupComplete]);
 
   return (
     <View style={styles.container}>
