@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -62,7 +63,8 @@ export default function FillProfileScreen() {
       // submitSetup() saves all data to SecureStore + marks setupComplete
       await useSetupStore.getState().submitSetup();
       
-      // Update auth store so layout middleware knows setup is complete
+      // CRITICAL: Update auth store so layout middleware knows setup is complete in RAM
+      // Without this, the app will enter an infinite redirect loop and crash!
       useAuthStore.getState().completeSetup();
       
       router.replace('/(tabs)' as any);

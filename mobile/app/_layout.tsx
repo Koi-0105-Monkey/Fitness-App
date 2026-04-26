@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { View, ActivityIndicator } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/colors';
 import { useFonts } from 'expo-font';
 import { 
@@ -35,6 +36,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
 
+    // Do not redirect if we are at the splash screen (index.tsx)
+    // The splash screen handles its own timed navigation
+    const isSplash = !segments[0];
+    if (isSplash) return;
+
     const inAuthGroup = segments[0] === '(auth)';
     const inSetupGroup = segments[0] === '(setup)';
 
@@ -58,5 +64,9 @@ export default function RootLayout() {
     );
   }
 
-  return <Slot />;
+  return (
+    <SafeAreaProvider>
+      <Slot />
+    </SafeAreaProvider>
+  );
 }
