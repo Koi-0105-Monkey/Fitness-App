@@ -47,7 +47,7 @@ export default function HeightScreen() {
 
       <Text style={styles.title}>What Is Your Height?</Text>
       <Text style={styles.subtitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Your height is essential for calculating your metabolic rate and personalizing your calorie goals.
       </Text>
 
       {/* Numbers display above ruler */}

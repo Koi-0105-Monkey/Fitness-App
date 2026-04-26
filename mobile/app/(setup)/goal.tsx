@@ -28,7 +28,7 @@ export default function GoalScreen() {
 
       <Text style={styles.title}>What Is Your Goal?</Text>
       <Text style={styles.subtitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Select your main fitness goal to help us tailor a plan that works specifically for you.
       </Text>
 
       <View style={styles.purpleContainer}>

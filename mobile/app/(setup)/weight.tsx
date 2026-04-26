@@ -51,7 +51,7 @@ export default function WeightScreen() {
 
       <Text style={styles.title}>What Is Your Weight?</Text>
       <Text style={styles.subtitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Your current weight is used to track your progress and calculate your BMI.
       </Text>
 
       {/* Unit Toggle */}
