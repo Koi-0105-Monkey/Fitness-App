@@ -28,12 +28,21 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="workout"
+        name="workout/index"
         options={{
+          title: 'Workout',
           tabBarIcon: ({ color }) => (
             <Ionicons name="barbell" size={28} color={color} />
           ),
         }}
+      />
+      <Tabs.Screen
+        name="workout/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="workout/exercise/[id]"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="resources"
@@ -42,6 +51,18 @@ export default function TabsLayout() {
             <Ionicons name="document-text" size={28} color={color} />
           ),
         }}
+      />
+      <Tabs.Screen
+        name="community/index"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="community/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="community/challenge/[id]"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="favorites"

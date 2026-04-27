@@ -50,7 +50,7 @@ export default function HomeScreen() {
         <View style={styles.categories}>
           <TouchableOpacity 
             style={styles.categoryItem}
-            onPress={() => router.push('/(tabs)/workout')}
+            onPress={() => router.push('/workout')}
           >
             <Ionicons name="barbell" size={32} color={COLORS.accent} />
             <Text style={[styles.categoryText, { color: COLORS.accent }]}>Workout</Text>
@@ -63,7 +63,7 @@ export default function HomeScreen() {
             <Ionicons name="nutrition-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Nutrition</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem}>
+          <TouchableOpacity style={styles.categoryItem} onPress={() => router.push('/community' as any)}>
             <Ionicons name="people-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Community</Text>
           </TouchableOpacity>

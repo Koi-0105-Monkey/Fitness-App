@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { workoutService, Workout } from '../../services/workout.service';
+import { workoutService, Workout } from '../../../services/workout.service';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams();
