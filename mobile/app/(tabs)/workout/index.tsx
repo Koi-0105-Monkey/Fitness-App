@@ -5,8 +5,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { workoutService, Workout } from '../../services/workout.service';
-import { COLORS } from '../../constants/colors';
+import { workoutService, Workout } from '../../../services/workout.service';
+import { COLORS } from '../../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
