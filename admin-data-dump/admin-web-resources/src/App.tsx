@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Image as ImageIcon, Video, Save, Loader2, CheckCircle2, AlertCircle, X, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Video, Save, Loader2, CheckCircle2, AlertCircle, X, ExternalLink, Edit2 } from 'lucide-react';
 import './App.css';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -147,7 +147,7 @@ function ResourceCard({ resource, onDelete, onEdit }: { resource: Resource; onDe
         </div>
       </div>
       <div className="card-actions">
-        <button className="action-btn edit" onClick={onEdit} title="Edit"><Plus size={16} style={{transform: 'rotate(45deg)'}} /></button>
+        <button className="action-btn edit" onClick={onEdit} title="Edit"><Edit2 size={16} /></button>
         <button className="action-btn delete" onClick={onDelete} title="Delete"><Trash2 size={16} /></button>
       </div>
     </div>

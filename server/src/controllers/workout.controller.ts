@@ -108,3 +108,31 @@ export const getRecommendations = asyncHandler(async (req: Request, res: Respons
 
   sendSuccess(res, workouts, 'Lấy danh sách recommendations thành công');
 });
+
+// @desc    Cập nhật bài tập
+// @route   PUT /api/workouts/:id
+// @access  Public (Mở để Admin dễ thao tác)
+export const updateWorkout = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const workout = await Workout.findByIdAndUpdate(id, req.body, { new: true });
+  
+  if (!workout) {
+    return sendError(res, 'Không tìm thấy bài tập', 404);
+  }
+  
+  sendSuccess(res, workout, 'Cập nhật bài tập thành công');
+});
+
+// @desc    Xoá bài tập
+// @route   DELETE /api/workouts/:id
+// @access  Public (Mở để Admin dễ thao tác)
+export const deleteWorkout = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const workout = await Workout.findByIdAndDelete(id);
+  
+  if (!workout) {
+    return sendError(res, 'Không tìm thấy bài tập', 404);
+  }
+  
+  sendSuccess(res, null, 'Xoá bài tập thành công');
+});

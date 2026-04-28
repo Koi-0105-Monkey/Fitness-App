@@ -49,3 +49,12 @@ export const deleteResource = asyncHandler(async (req: Request, res: Response) =
   if (!resource) return sendError(res, 'Không tìm thấy resource', 404);
   sendSuccess(res, null, 'Đã xoá resource thành công');
 });
+
+// @desc  Cập nhật resource
+// @route PUT /api/resources/:id
+// @access Public (mở để Admin dễ sửa)
+export const updateResource = asyncHandler(async (req: Request, res: Response) => {
+  const resource = await Resource.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!resource) return sendError(res, 'Không tìm thấy resource', 404);
+  sendSuccess(res, resource, 'Cập nhật resource thành công');
+});

@@ -17,7 +17,7 @@ export interface IResource extends Document {
   type: ResourceType;
   thumbnailUrl: string;
   videoUrl?: string;
-  duration?: number;          // phút
+  duration?: number;          // giây
   muscleGroups: MuscleGroup[];
   equipment: Equipment[];
   sport: Sport[];

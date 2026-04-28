@@ -4,15 +4,17 @@ import { verifyToken } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
-// API Tạo bài tập mới (Mở Public để dev/test dữ liệu dễ dàng)
+// API Quản lý bài tập (Mở Public để Admin dễ thao tác)
+router.get('/', workoutController.getWorkouts);
+router.get('/:id', workoutController.getWorkoutById);
 router.post('/', workoutController.createWorkout);
+router.put('/:id', workoutController.updateWorkout);
+router.delete('/:id', workoutController.deleteWorkout);
 
-// Các API lấy dữ liệu vẫn yêu cầu đăng nhập
+// Các API khác yêu cầu đăng nhập
 router.use(verifyToken);
 
 router.get('/recommendations', workoutController.getRecommendations);
 router.get('/training-of-day', workoutController.getTrainingOfDay);
-router.get('/', workoutController.getWorkouts);
-router.get('/:id', workoutController.getWorkoutById);
 
 export default router;

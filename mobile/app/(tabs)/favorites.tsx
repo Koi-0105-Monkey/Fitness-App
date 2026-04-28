@@ -78,7 +78,7 @@ export default function FavoritesScreen() {
                   </View>
 
                   <View style={styles.cardImageContainer}>
-                    <Image source={{ uri: getImageUrl(item.workout.image || item.workout.imageUrl) }} style={styles.cardImage} />
+                    <Image source={{ uri: getImageUrl(item.workout.imageUrl) }} style={styles.cardImage} />
                     <TouchableOpacity
                       style={styles.starIconContainer}
                       onPress={(e) => {
