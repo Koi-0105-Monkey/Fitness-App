@@ -76,7 +76,7 @@ export default function HomeScreen() {
             <Ionicons name="nutrition-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Nutrition</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem}>
+          <TouchableOpacity style={styles.categoryItem} onPress={() => router.push('/community' as any)}>
             <Ionicons name="people-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Community</Text>
           </TouchableOpacity>
