@@ -1,19 +1,19 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IFavorite extends Document {
-  userId: mongoose.Types.ObjectId;
-  workoutId: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
+  workout: mongoose.Types.ObjectId;
   addedAt: Date;
 }
 
 const FavoriteSchema = new Schema<IFavorite>(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    workoutId: {
+    workout: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Workout',
       required: true,
@@ -27,6 +27,6 @@ const FavoriteSchema = new Schema<IFavorite>(
 );
 
 // Unique constraint: mỗi user chỉ favorite 1 workout 1 lần
-FavoriteSchema.index({ userId: 1, workoutId: 1 }, { unique: true });
+FavoriteSchema.index({ user: 1, workout: 1 }, { unique: true });
 
 export default mongoose.model<IFavorite>('Favorite', FavoriteSchema);

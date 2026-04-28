@@ -3,7 +3,7 @@ import axios from 'axios';
 import { 
   Plus, Trash2, Image as ImageIcon, Video, 
   CheckCircle2, AlertCircle, Dumbbell, 
-  ChevronRight, Save, Loader2 
+  ChevronRight, Save, Loader2, X 
 } from 'lucide-react';
 import './App.css';
 
@@ -60,6 +60,14 @@ function App() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<string | null>(null);
   const [mockupScreen, setMockupScreen] = useState<'home' | 'detail'>('detail');
+  
+  const [workouts, setWorkouts] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [resourceLibrary, setResourceLibrary] = useState<any[]>([]);
+  const [activeSearch, setActiveSearch] = useState<{ rIdx: number, eIdx: number } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (message) {
@@ -67,6 +75,94 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  useEffect(() => {
+    fetchResourceLibrary();
+    fetchWorkouts();
+  }, []);
+
+  const fetchWorkouts = async () => {
+    setFetching(true);
+    try {
+      const { data } = await axios.get(`${API_BASE}/workouts`);
+      setWorkouts(data.data || []);
+    } catch (e) {
+      console.error('Error fetching workouts', e);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleEditWorkout = (w: any) => {
+    setEditingId(w._id);
+    setWorkout({
+      title: w.title,
+      description: w.description,
+      level: w.level,
+      duration: w.duration,
+      calories: w.calories,
+      imageUrl: w.imageUrl,
+      rounds: w.rounds.map((r: any) => ({
+        ...r,
+        exercises: r.exercises.map((ex: any) => ({
+          ...ex,
+          id: ex._id || Math.random().toString()
+        }))
+      }))
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteWorkout = async (id: string) => {
+    if (!confirm('Delete this workout?')) return;
+    try {
+      await axios.delete(`${API_BASE}/workouts/${id}`);
+      fetchWorkouts();
+      setMessage({ type: 'success', text: 'Workout deleted!' });
+    } catch {
+      setMessage({ type: 'error', text: 'Error deleting workout' });
+    }
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setWorkout(DEFAULT_WORKOUT);
+  };
+
+  const fetchResourceLibrary = async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE}/resources`);
+      setResourceLibrary(data.data || []);
+    } catch (e) {
+      console.error('Error fetching resource library', e);
+    }
+  };
+
+  const handleSelectResource = (res: any, rIdx: number, eIdx: number) => {
+    setWorkout(prev => {
+      const nextW = { ...prev };
+      nextW.rounds = [...prev.rounds];
+      nextW.rounds[rIdx].exercises = [...prev.rounds[rIdx].exercises];
+      
+      const formatSecs = (sec: number) => {
+        if (!sec) return '00:00';
+        const mins = Math.floor(sec / 60);
+        const secs = sec % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      nextW.rounds[rIdx].exercises[eIdx] = {
+        ...nextW.rounds[rIdx].exercises[eIdx],
+        name: res.title,
+        videoUrl: res.videoUrl,
+        videoDuration: formatSecs(res.duration),
+        description: res.description
+      };
+      return nextW;
+    });
+    setActiveSearch(null);
+    setSearchTerm('');
+  };
 
   const calculateStats = (w: Workout) => {
     let totalSecs = 0;
@@ -189,17 +285,16 @@ function App() {
         throw new Error('Cần ít nhất 1 bài tập hợp lệ');
       }
 
-      await axios.post(`${API_BASE}/workouts`, cleanWorkout);
-      setMessage({ type: 'success', text: 'Đã lưu bài tập thành công!' });
+      if (editingId) {
+        await axios.put(`${API_BASE}/workouts/${editingId}`, cleanWorkout);
+        setMessage({ type: 'success', text: 'Đã cập nhật bài tập thành công!' });
+      } else {
+        await axios.post(`${API_BASE}/workouts`, cleanWorkout);
+        setMessage({ type: 'success', text: 'Đã lưu bài tập thành công!' });
+      }
       
-      // Xoá trắng dữ liệu để làm cái mới
-      setWorkout({
-        ...DEFAULT_WORKOUT,
-        rounds: [{
-          roundName: 'Round 1',
-          exercises: [{ id: Math.random().toString(), name: '', sets: 1, duration: '', reps: '', videoUrl: '', fitMode: 'contain', description: '' }]
-        }]
-      });
+      resetForm();
+      fetchWorkouts();
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Lỗi khi lưu bài tập' });
     } finally {
@@ -226,11 +321,12 @@ function App() {
       <div className="header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
           <div className="logo-box"><Dumbbell color="black" /></div>
-          <h1>FITBODY ADMIN</h1>
+          <h1>{editingId ? 'EDIT WORKOUT' : 'FITBODY ADMIN'}</h1>
+          {editingId && <button className="btn-add" style={{width: 'auto', margin: 0, padding: '4px 12px', fontSize: '0.8rem'}} onClick={resetForm}>Create New</button>}
         </div>
         <button className="btn-save" style={{ width: 'auto', padding: '12px 30px' }} onClick={handleSave}>
           <Save size={20} style={{ marginRight: 10 }} />
-          LƯU BÀI TẬP
+          {editingId ? 'CẬP NHẬT' : 'LƯU BÀI TẬP'}
         </button>
       </div>
 
@@ -337,15 +433,46 @@ function App() {
                 </div>
 
                 <div className="exercise-info">
-                  <input 
-                    className="input" style={{ marginBottom: 10, padding: '8px 12px' }} 
-                    placeholder="Tên động tác" value={ex.name}
-                    onChange={(e) => {
-                      const nextR = [...workout.rounds];
-                      nextR[rIdx].exercises[eIdx].name = e.target.value;
-                      setWorkout({ ...workout, rounds: nextR });
-                    }}
-                  />
+                  <div className="row" style={{ marginBottom: 10, gap: 10, position: 'relative' }}>
+                    <div style={{ flex: 1 }}>
+                      <input 
+                        className="input" style={{ padding: '8px 12px' }} 
+                        placeholder="Tên động tác (hoặc tìm trong thư viện)" value={ex.name}
+                        onFocus={() => setActiveSearch({ rIdx, eIdx })}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          const nextR = [...workout.rounds];
+                          nextR[rIdx].exercises[eIdx].name = e.target.value;
+                          setWorkout({ ...workout, rounds: nextR });
+                        }}
+                      />
+                      {activeSearch?.rIdx === rIdx && activeSearch?.eIdx === eIdx && (
+                        <div className="search-dropdown animate-fade-in">
+                          <div className="search-header">
+                            <span>Library Suggestions</span>
+                            <button onClick={() => setActiveSearch(null)}><X size={14} /></button>
+                          </div>
+                          <div className="search-results">
+                            {resourceLibrary
+                              .filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                              .slice(0, 5)
+                              .map(res => (
+                                <div key={res._id} className="search-item" onClick={() => handleSelectResource(res, rIdx, eIdx)}>
+                                  <img src={res.thumbnailUrl} alt="" />
+                                  <div>
+                                    <p className="s-title">{res.title}</p>
+                                    <p className="s-meta">{res.type} • {Math.round(res.duration)}s</p>
+                                  </div>
+                                </div>
+                              ))}
+                            {resourceLibrary.filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                              <div className="search-empty">No matching resources found</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="row" style={{ gap: 10 }}>
                     <div style={{ flex: 0.5 }}>
                       <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 4, display: 'block' }}>Sets</label>
@@ -440,6 +567,24 @@ function App() {
       </div>
 
       <div className="preview-sidebar">
+        <h2 className="section-title">MANAGE WORKOUTS</h2>
+        <div className="workout-manager-list" style={{ marginBottom: 20 }}>
+          {fetching ? <Loader2 className="spin" /> : workouts.map(w => (
+            <div key={w._id} className={`mini-workout-card ${editingId === w._id ? 'active' : ''}`}>
+              <img src={w.imageUrl} alt="" />
+              <div className="mini-info">
+                <p className="mini-title">{w.title}</p>
+                <p className="mini-meta">{w.level} • {w.rounds.length} rounds</p>
+              </div>
+              <div className="mini-actions">
+                <button onClick={() => handleEditWorkout(w)} title="Edit"><Plus size={16} style={{transform: 'rotate(45deg)'}} /></button>
+                <button onClick={() => handleDeleteWorkout(w._id)} title="Delete"><Trash2 size={16} /></button>
+              </div>
+            </div>
+          ))}
+          {!fetching && workouts.length === 0 && <p style={{color: 'var(--text-dim)', fontSize: '0.8rem', textAlign: 'center'}}>No workouts found.</p>}
+        </div>
+
         <h2 className="section-title">MOBILE REAL-TIME MOCKUP</h2>
         
         <div className="mobile-frame">
@@ -550,6 +695,34 @@ function App() {
       </div>
 
       <style>{`
+        .workout-manager-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 400px;
+          overflow-y: auto;
+          margin-bottom: 20px;
+          padding-right: 5px;
+        }
+        .mini-workout-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--input-bg);
+          padding: 10px;
+          border-radius: 12px;
+          border: 1px solid var(--border);
+          transition: all 0.2s;
+        }
+        .mini-workout-card.active { border-color: var(--primary); background: rgba(226, 241, 99, 0.05); }
+        .mini-workout-card img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .mini-info { flex: 1; min-width: 0; }
+        .mini-title { color: white; font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mini-meta { color: var(--text-dim); font-size: 0.7rem; text-transform: capitalize; }
+        .mini-actions { display: flex; gap: 4px; }
+        .mini-actions button { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; border-radius: 4px; }
+        .mini-actions button:hover { color: var(--primary); background: rgba(255,255,255,0.05); }
+        .mini-actions button[title="Delete"]:hover { color: var(--error); }
         .message-toast {
           position: fixed;
           top: 20px;

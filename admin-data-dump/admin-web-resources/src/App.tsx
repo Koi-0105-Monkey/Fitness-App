@@ -84,19 +84,6 @@ const generateAutoThumbnail = (videoUrl: string) => {
     .replace(/\.[^/.]+$/, '.jpg'); // Đổi đuôi thành jpg
 };
 
-// ─── Helper: Get Video Duration ───────────────────────────────────────────────
-const getVideoDuration = (file: File): Promise<number> => {
-  return new Promise((resolve) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      window.URL.revokeObjectURL(video.src);
-      resolve(Math.round(video.duration / 60)); // Chuyển sang phút
-    };
-    video.src = URL.createObjectURL(file);
-  });
-};
-
 // ─── Multi-select Checkbox Group ──────────────────────────────────────────────
 function CheckGroup({
   label, options, selected, onChange
@@ -129,7 +116,7 @@ function CheckGroup({
 }
 
 // ─── Resource Card ────────────────────────────────────────────────────────────
-function ResourceCard({ resource, onDelete }: { resource: Resource; onDelete: () => void }) {
+function ResourceCard({ resource, onDelete, onEdit }: { resource: Resource; onDelete: () => void, onEdit: () => void }) {
   return (
     <div className="resource-card">
       <div className="resource-card-img">
@@ -149,7 +136,7 @@ function ResourceCard({ resource, onDelete }: { resource: Resource; onDelete: ()
         <p className="resource-title">{resource.title}</p>
         <p className="resource-desc">{resource.description}</p>
         <div className="resource-tags">
-          {resource.type === 'video' && resource.duration > 0 && <span className="tag">{resource.duration} min</span>}
+          {resource.type === 'video' && resource.duration > 0 && <span className="tag">{(resource.duration < 60) ? `${resource.duration}s` : `${Math.round(resource.duration/60)}m`}</span>}
           {resource.muscleGroups.map(m => <span key={m} className="tag muscle">{m}</span>)}
           {resource.equipment.map(e => <span key={e} className="tag equip">{e}</span>)}
           {resource.sport.map(s => <span key={s} className="tag sport">{s}</span>)}
@@ -159,9 +146,10 @@ function ResourceCard({ resource, onDelete }: { resource: Resource; onDelete: ()
           <span>⭐ {resource.favoritesCount}</span>
         </div>
       </div>
-      <button className="delete-btn" onClick={onDelete} title="Delete">
-        <Trash2 size={16} />
-      </button>
+      <div className="card-actions">
+        <button className="action-btn edit" onClick={onEdit} title="Edit"><Plus size={16} style={{transform: 'rotate(45deg)'}} /></button>
+        <button className="action-btn delete" onClick={onDelete} title="Delete"><Trash2 size={16} /></button>
+      </div>
     </div>
   );
 }
@@ -174,6 +162,7 @@ export default function App() {
   const [fetching, setFetching] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [uploading, setUploading] = useState<'thumbnail' | 'video' | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Filter state
   const [filterMuscle, setFilterMuscle] = useState('');
@@ -210,7 +199,15 @@ export default function App() {
     let localDuration = form.duration;
     if (fieldType === 'video') {
       try {
-        localDuration = await getVideoDuration(file);
+        localDuration = await new Promise((resolve) => {
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.onloadedmetadata = () => {
+            window.URL.revokeObjectURL(video.src);
+            resolve(Math.round(video.duration)); // Giữ nguyên giây
+          };
+          video.src = URL.createObjectURL(file);
+        });
       } catch (e) {
         console.error('Could not get video duration', e);
       }
@@ -255,6 +252,27 @@ export default function App() {
     }
   };
 
+  const handleEdit = (res: Resource) => {
+    setEditingId(res._id);
+    setForm({
+      title: res.title,
+      description: res.description,
+      type: res.type,
+      thumbnailUrl: res.thumbnailUrl,
+      videoUrl: res.videoUrl || '',
+      duration: res.duration || 0,
+      muscleGroups: res.muscleGroups,
+      equipment: res.equipment,
+      sport: res.sport,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm(DEFAULT_FORM);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) {
@@ -263,9 +281,14 @@ export default function App() {
     }
     setLoading(true);
     try {
-      await axios.post(`${API_BASE}/resources`, form);
-      setMessage({ type: 'success', text: 'Resource saved successfully!' });
-      setForm(DEFAULT_FORM);
+      if (editingId) {
+        await axios.put(`${API_BASE}/resources/${editingId}`, form);
+        setMessage({ type: 'success', text: 'Resource updated successfully!' });
+      } else {
+        await axios.post(`${API_BASE}/resources`, form);
+        setMessage({ type: 'success', text: 'Resource saved successfully!' });
+      }
+      resetForm();
       fetchResources();
     } catch (err: any) {
       setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving' });
@@ -501,7 +524,7 @@ export default function App() {
           ) : (
             <div className="resource-list">
               {filteredResources.map(r => (
-                <ResourceCard key={r._id} resource={r} onDelete={() => handleDelete(r._id)} />
+                <ResourceCard key={r._id} resource={r} onDelete={() => handleDelete(r._id)} onEdit={() => handleEdit(r)} />
               ))}
             </div>
           )}

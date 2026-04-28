@@ -53,6 +53,14 @@ export default function ResourceDetailScreen() {
     );
   }
 
+  const formatDuration = (sec: number) => {
+    if (!sec) return '0s';
+    if (sec < 60) return `${sec}s`;
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -106,7 +114,7 @@ export default function ResourceDetailScreen() {
             {resource.type === 'video' && (
               <View style={styles.statChip}>
                 <Ionicons name="time" size={14} color="#212020" />
-                <Text style={styles.statText}>{resource.duration} Minutes</Text>
+                <Text style={styles.statText}>{formatDuration(resource.duration)}</Text>
               </View>
             )}
             <View style={styles.statChip}>

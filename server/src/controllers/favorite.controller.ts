@@ -10,16 +10,16 @@ import { asyncHandler } from '../utils/asyncHandler';
 export const getFavorites = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.userId;
 
-  const favorites = await Favorite.find({ userId })
-    .populate('workoutId') // Lấy đầy đủ thông tin Workout
+  const favorites = await Favorite.find({ user: userId })
+    .populate('workout') // Lấy đầy đủ thông tin Workout
     .sort({ addedAt: -1 }); // Mới nhất trước
 
   // Map sang format gọn hơn và lọc bài tập bị xoá (null)
   const result = favorites
-    .filter(fav => fav.workoutId !== null)
+    .filter(fav => fav.workout !== null)
     .map(fav => ({
       addedAt: fav.addedAt,
-      workout: fav.workoutId,
+      workout: fav.workout,
     }));
 
   sendSuccess(res, result, 'Lấy danh sách yêu thích thành công');
@@ -44,20 +44,20 @@ export const toggleFavorite = asyncHandler(async (req: Request, res: Response) =
   }
 
   try {
-    const existing = await Favorite.findOne({ userId, workoutId });
+    const existing = await Favorite.findOne({ user: userId, workout: workoutId });
 
     if (existing) {
       await Favorite.deleteOne({ _id: existing._id });
       console.log(`[DEBUG] Removed favorite for workout: ${workoutId}`);
       return sendSuccess(res, { isFavorite: false }, 'Đã xoá khỏi yêu thích');
     } else {
-      await Favorite.create({ userId, workoutId });
+      await Favorite.create({ user: userId, workout: workoutId });
       console.log(`[DEBUG] Added favorite for workout: ${workoutId}`);
       return sendSuccess(res, { isFavorite: true }, 'Đã thêm vào yêu thích', 201);
     }
   } catch (error: any) {
     console.error(`[ERROR] Toggle Favorite failed:`, error);
-    throw error; // Đẩy lên errorMiddleware
+    throw error;
   }
 });
 
@@ -68,6 +68,6 @@ export const checkFavorite = asyncHandler(async (req: Request, res: Response) =>
   const userId = req.user!.userId;
   const { workoutId } = req.params;
 
-  const existing = await Favorite.findOne({ userId, workoutId });
+  const existing = await Favorite.findOne({ user: userId, workout: workoutId });
   sendSuccess(res, { isFavorite: !!existing }, 'OK');
 });
