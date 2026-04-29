@@ -146,7 +146,7 @@ function App() {
       newSocket.emit('admin_join_all');
     });
 
-    newSocket.on('new_conversation_message', (data) => {
+    newSocket.on('new_conversation_message', () => {
       fetchConversations(); // Refresh list khi có hội thoại mới hoặc tin nhắn mới
     });
 
