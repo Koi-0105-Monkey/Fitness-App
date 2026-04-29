@@ -31,6 +31,7 @@ import workoutRoutes from './routes/workout.routes';
 import uploadRoutes from './routes/upload.routes';
 import favoriteRoutes from './routes/favorite.routes';
 import resourceRoutes from './routes/resource.routes';
+import chatRoutes from './routes/chat.routes';
 
 // ─── Routes (thêm dần theo từng feature) ────────────────────────────────────
 app.use('/api/auth', authRoutes);
@@ -39,6 +40,7 @@ app.use('/api/workouts', workoutRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/chat', chatRoutes);
 // ─── Global Error Handler (phải ở cuối) ─────────────────────────────────────
 app.use(errorMiddleware);
 

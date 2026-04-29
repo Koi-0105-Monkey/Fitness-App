@@ -3,8 +3,10 @@ import axios from 'axios';
 import { 
   Plus, Trash2, Image as ImageIcon, Video, 
   CheckCircle2, AlertCircle, Dumbbell, 
-  ChevronRight, Save, Loader2, X, Edit2 
+  ChevronRight, Save, Loader2, X, Edit2,
+  Headset, Send, MessageSquare
 } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
 import './App.css';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -93,6 +95,15 @@ function App() {
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'workout' | 'support'>('workout');
+
+  // Chat State
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [activeConv, setActiveConv] = useState<any>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [adminUser, setAdminUser] = useState<any>(null);
 
   const [resourceLibrary, setResourceLibrary] = useState<any[]>([]);
   const [activeSearch, setActiveSearch] = useState<{ rIdx: number, eIdx: number } | null>(null);
@@ -122,7 +133,147 @@ function App() {
   useEffect(() => {
     fetchResourceLibrary();
     fetchWorkouts();
+    fetchAdminUser();
   }, []);
+
+  useEffect(() => {
+    // Socket setup for Admin
+    const newSocket = io('http://localhost:5000');
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('✅ Admin Connected to Socket');
+      newSocket.emit('admin_join_all');
+    });
+
+    newSocket.on('new_conversation_message', (data) => {
+      fetchConversations(); // Refresh list khi có hội thoại mới hoặc tin nhắn mới
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  // Lắng nghe tin nhắn riêng lẻ để lấy được activeConv mới nhất
+  useEffect(() => {
+    if (!socket) return;
+    const handleReceiveMessage = (msg: any) => {
+      // Cập nhật last message trong sidebar
+      setConversations(prev => prev.map(c => 
+        c._id === msg.conversationId || (c.isTemp && c.targetUserId === msg.senderId) ? { ...c, lastMessage: msg.message, updatedAt: new Date().toISOString() } : c
+      ));
+
+      // Chỉ hiển thị tin nhắn nếu đang mở đúng conversation
+      const isActive = activeConv && (
+        activeConv._id === msg.conversationId || 
+        (activeConv.isTemp && msg.senderId === activeConv.targetUserId) || 
+        (activeConv.isTemp && msg.senderId === adminUser?._id)
+      );
+
+      if (isActive) {
+        setChatMessages(prev => {
+          if (prev.find(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+      }
+    };
+
+    socket.on('receive_message', handleReceiveMessage);
+    return () => {
+      socket.off('receive_message', handleReceiveMessage);
+    };
+  }, [socket, activeConv, adminUser]);
+
+  const fetchAdminUser = async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE}/users/me`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+      setAdminUser(data.data);
+    } catch (e) {
+      // Mock admin for dev if no token
+      setAdminUser({ _id: 'admin_mock_id', role: 'admin', fullName: 'Admin' });
+    }
+  };
+
+  const fetchConversations = async () => {
+    try {
+      // 1. Fetch real conversations
+      const convRes = await axios.get(`${API_BASE}/chat/conversations`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+      const realConvs = convRes.data.data || [];
+
+      // 2. Fetch all users
+      const usersRes = await axios.get(`${API_BASE}/users`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+      const allUsers = usersRes.data.data || [];
+
+      // 3. Merge users into conversations list
+      const mergedConvs = [...realConvs];
+      allUsers.forEach((user: any) => {
+        // Kiểm tra xem user này đã có hội thoại nào chưa
+        const exists = mergedConvs.some(c => c.participants.some((p: any) => p._id === user._id));
+        if (!exists) {
+          mergedConvs.push({
+            _id: 'temp_' + user._id, // ID tạm để xử lý logic tạo mới
+            participants: [user, { _id: 'admin_mock_id', role: 'admin' }],
+            lastMessage: 'Chưa có tin nhắn',
+            updatedAt: user.createdAt,
+            isTemp: true,
+            targetUserId: user._id
+          });
+        }
+      });
+
+      // Sort by updatedAt desc
+      mergedConvs.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      
+      setConversations(mergedConvs);
+    } catch (e) {
+      console.error('Error fetching conversations', e);
+    }
+  };
+
+  const fetchMessages = async (convId: string) => {
+    try {
+      const { data } = await axios.get(`${API_BASE}/chat/messages/${convId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+      setChatMessages(data.data || []);
+    } catch (e) {
+      console.error('Error fetching messages', e);
+    }
+  };
+
+  const handleSelectConversation = (conv: any) => {
+    setActiveConv(conv);
+    fetchMessages(conv._id);
+    socket?.emit('join_room', conv._id);
+  };
+
+  const handleSendChat = () => {
+    if (!chatInput.trim() || !activeConv || !adminUser) return;
+    
+    const adminP = activeConv.participants.find((p: any) => p.role === 'admin');
+    const realAdminId = adminUser._id === 'admin_mock_id' && adminP ? adminP._id : adminUser._id;
+
+    socket?.emit('send_message', {
+      conversationId: activeConv._id,
+      senderId: realAdminId,
+      message: chatInput.trim(),
+      targetUserId: activeConv.targetUserId // Truyền thêm ID user nếu Admin chủ động nhắn trước
+    });
+    setChatInput('');
+  };
+
+  useEffect(() => {
+    if (activeTab === 'support') {
+      fetchConversations();
+    }
+  }, [activeTab]);
 
   const fetchWorkouts = async () => {
     setFetching(true);
@@ -403,16 +554,33 @@ function App() {
       <div className="header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
           <div className="logo-box"><Dumbbell color="black" /></div>
-          <h1>{editingId ? 'EDIT WORKOUT' : 'FITBODY ADMIN'}</h1>
-          {editingId && <button className="btn-add" style={{width: 'auto', margin: 0, padding: '4px 12px', fontSize: '0.8rem'}} onClick={resetForm}>Create New</button>}
+          <h1>FITBODY ADMIN</h1>
+          <div className="tab-navigation">
+            <button 
+              className={`tab-btn ${activeTab === 'workout' ? 'active' : ''}`}
+              onClick={() => setActiveTab('workout')}
+            >
+              Workout Manager
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'support' ? 'active' : ''}`}
+              onClick={() => setActiveTab('support')}
+            >
+              Support Chat
+            </button>
+          </div>
+          {editingId && activeTab === 'workout' && <button className="btn-add" style={{width: 'auto', margin: 0, padding: '4px 12px', fontSize: '0.8rem'}} onClick={resetForm}>Create New</button>}
         </div>
-        <button className="btn-save" style={{ width: 'auto', padding: '12px 30px' }} onClick={handleSave}>
-          <Save size={20} style={{ marginRight: 10 }} />
-          {editingId ? 'CẬP NHẬT' : 'LƯU BÀI TẬP'}
-        </button>
+        {activeTab === 'workout' && (
+          <button className="btn-save" style={{ width: 'auto', padding: '12px 30px' }} onClick={handleSave}>
+            <Save size={20} style={{ marginRight: 10 }} />
+            {editingId ? 'CẬP NHẬT' : 'LƯU BÀI TẬP'}
+          </button>
+        )}
       </div>
 
-      <div className="main-content">
+      {activeTab === 'workout' ? (
+        <div className="main-content">
         <section className="section-card">
           <h2 className="section-title"><ImageIcon size={20} /> Thông tin chung</h2>
           
@@ -689,8 +857,88 @@ function App() {
           + THÊM ROUND MỚI
         </button>
       </div>
+      ) : (
+        /* Support Chat UI */
+        <div className="chat-support-container animate-fade-in">
+          <div className="conv-list-panel">
+            <h3 className="panel-title"><MessageSquare size={18} /> Conversations</h3>
+            <div className="conv-items">
+              {conversations.map(conv => {
+                const otherUser = conv.participants.find((p: any) => p.role !== 'admin');
+                return (
+                  <div 
+                    key={conv._id} 
+                    className={`conv-item ${activeConv?._id === conv._id ? 'active' : ''}`}
+                    onClick={() => handleSelectConversation(conv)}
+                  >
+                    <div className="conv-avatar">
+                      {otherUser?.avatarUrl ? <img src={otherUser.avatarUrl} alt="" /> : <div className="avatar-placeholder">{otherUser?.fullName?.charAt(0)}</div>}
+                    </div>
+                    <div className="conv-info">
+                      <p className="conv-name">{otherUser?.fullName || 'Anonymous User'}</p>
+                      <p className="conv-last-msg">{conv.lastMessage || 'No messages yet'}</p>
+                    </div>
+                    <div className="conv-meta">
+                      <span className="conv-time">{new Date(conv.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {conversations.length === 0 && <p className="empty-text">No support tickets found.</p>}
+            </div>
+          </div>
 
-      <div className="preview-sidebar">
+          <div className="chat-window-panel">
+            {activeConv ? (
+              <>
+                <div className="chat-header">
+                  <div className="active-user-info">
+                    <p className="active-name">{activeConv.participants.find((p: any) => p.role !== 'admin')?.fullName}</p>
+                    <span className="online-status">Online</span>
+                  </div>
+                </div>
+                <div className="chat-messages">
+                  {chatMessages.map((m, i) => {
+                    const adminP = activeConv.participants.find((p: any) => p.role === 'admin');
+                    const realAdminId = adminUser?._id === 'admin_mock_id' && adminP ? adminP._id : adminUser?._id;
+                    const isMe = m.senderId === realAdminId || m.senderId === 'admin_mock_id';
+                    
+                    return (
+                      <div key={m._id || i} className={`msg-row ${isMe ? 'msg-me' : 'msg-them'}`}>
+                        <div className="msg-bubble">
+                          <p>{m.message}</p>
+                          <span className="msg-time">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div id="anchor" style={{ height: 1 }}></div>
+                </div>
+                <div className="chat-input-area">
+                  <input 
+                    type="text" 
+                    placeholder="Type your response..." 
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                  />
+                  <button className="send-chat-btn" onClick={handleSendChat}>
+                    <Send size={18} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="no-chat-selected">
+                <Headset size={64} color="var(--border)" />
+                <p>Select a conversation to start chatting</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'workout' && (
+        <div className="preview-sidebar">
         <h2 className="section-title">MANAGE WORKOUTS</h2>
         <div className="workout-manager-list" style={{ marginBottom: 20 }}>
           {fetching ? <Loader2 className="spin" /> : workouts.map(w => (
@@ -824,6 +1072,7 @@ function App() {
           )}
         </div>
       </div>
+      )}
 
       {/* ── RESOURCE FORM MODAL ── */}
       {showResourceForm && (

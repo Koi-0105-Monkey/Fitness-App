@@ -30,7 +30,9 @@ export default function HomeScreen() {
       try {
         const data = await recommendationService.getRecommendations(2);
         setRecoWorkouts(data);
-      } catch {}
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+      }
       finally { setRecoLoading(false); }
     })();
   }, []);

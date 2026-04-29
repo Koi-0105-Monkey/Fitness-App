@@ -89,6 +89,15 @@ export const ENDPOINTS = {
 
   // Search
   SEARCH: `${BASE}/search`,
+
+  // Chat
+  CHAT: {
+    CONVERSATIONS: `${BASE}/chat/conversations`,
+    MESSAGES: (id: string) => `${BASE}/chat/messages/${id}`,
+    INIT: (userId: string) => `${BASE}/chat/init/${userId}`,
+  },
 };
+
+export const API_BASE = BASE;
 
 export const SOCKET_URL = SOCKET_BASE;

@@ -85,11 +85,13 @@ export const createWorkout = asyncHandler(async (req: Request, res: Response) =>
 // @route   GET /api/workouts/recommendations
 // @access  Private
 export const getRecommendations = asyncHandler(async (req: Request, res: Response) => {
+  console.log('[DEBUG] getRecommendations called');
   const limit = parseInt(req.query.limit as string) || 0; // 0 = all
 
   // Đếm số lần favorite cho mỗi workoutId
   const favCounts = await Favorite.aggregate([
-    { $group: { _id: '$workoutId', count: { $sum: 1 } } },
+    { $match: { workout: { $ne: null } } },
+    { $group: { _id: '$workout', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
   ]);
 
@@ -97,15 +99,19 @@ export const getRecommendations = asyncHandler(async (req: Request, res: Respons
   const allWorkouts = await Workout.find();
 
   // Map favCount vào từng workout
-  const countMap = new Map(favCounts.map(f => [f._id.toString(), f.count]));
+  const countMap = new Map(favCounts.map(f => [f._id ? f._id.toString() : 'null', f.count]));
   
   const sorted = allWorkouts
     .map(w => ({ workout: w, favCount: countMap.get(w._id.toString()) || 0 }))
     .sort((a, b) => b.favCount - a.favCount);
 
   const result = limit > 0 ? sorted.slice(0, limit) : sorted;
-  const workouts = result.map(r => ({ ...r.workout.toObject(), favoritesCount: r.favCount }));
+  const workouts = result.map(r => {
+    const workoutObj = r.workout.toObject ? r.workout.toObject() : r.workout;
+    return { ...workoutObj, favoritesCount: r.favCount };
+  });
 
+  console.log(`[DEBUG] Recommendations result count: ${workouts.length}`);
   sendSuccess(res, workouts, 'Lấy danh sách recommendations thành công');
 });
 

@@ -71,11 +71,9 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(setup)" />
-        <Stack.Screen name="workout/[id]" />
-        <Stack.Screen name="workout/exercise/[id]" />
-        <Stack.Screen name="workout/success/[id]" />
         <Stack.Screen name="recommendations" />
         <Stack.Screen name="resources/[id]" />
+        <Stack.Screen name="workout/success/[id]" />
       </Stack>
     </SafeAreaProvider>
   );

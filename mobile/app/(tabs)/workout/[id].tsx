@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { workoutService, Workout } from '../../../../services/workout.service';
-import { useWorkoutProgressStore } from '../../../../store/workoutProgressStore';
+import { workoutService, Workout } from '../../../services/workout.service';
+import { useWorkoutProgressStore } from '../../../store/workoutProgressStore';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams();

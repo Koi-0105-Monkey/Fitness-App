@@ -5,10 +5,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { workoutService, Workout } from '../../../../services/workout.service';
-import { COLORS } from '../../../../constants/colors';
+import { workoutService, Workout, Exercise } from '../../../services/workout.service';
+import { COLORS } from '../../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { useFavoriteStore } from '../../../../store/favoriteStore';
+import { useFavoriteStore } from '../../../store/favoriteStore';
 
 const { width } = Dimensions.get('window');
 const LEVELS = ['beginner', 'intermediate', 'advanced'];
