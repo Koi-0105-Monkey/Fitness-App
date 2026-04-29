@@ -187,13 +187,26 @@ function App() {
 
   const fetchAdminUser = async () => {
     try {
+      let token = localStorage.getItem('accessToken');
+      
+      // Tự động đăng nhập ngầm để lấy Token cho công cụ Admin Dump
+      if (!token) {
+        const loginRes = await axios.post(`${API_BASE}/auth/login`, {
+          email: 'support@fitbody.com',
+          password: 'defaultpassword123' // Mật khẩu mặc định khởi tạo ở Backend
+        });
+        token = loginRes.data.data.tokens.accessToken;
+        localStorage.setItem('accessToken', token);
+      }
+
       const { data } = await axios.get(`${API_BASE}/users/me`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       setAdminUser(data.data);
     } catch (e) {
-      // Mock admin for dev if no token
-      setAdminUser({ _id: 'admin_mock_id', role: 'admin', fullName: 'Admin' });
+      console.error('Error auto-login admin', e);
+      // Mock admin for dev if auto-login fails
+      setAdminUser({ _id: 'admin_mock_id', role: 'admin', fullName: 'FitBody Assistant' });
     }
   };
 

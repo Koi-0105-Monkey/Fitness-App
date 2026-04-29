@@ -121,6 +121,25 @@ io.on('connection', (socket) => {
 // ─── Start server ──────────────────────────────────────────────────────────
 const start = async () => {
   await connectDB();
+
+  // Đảm bảo luôn có 1 tài khoản Admin mặc định để Web Admin có thể tự động đăng nhập ngầm
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      await User.create({
+        email: 'support@fitbody.com',
+        password: 'defaultpassword123',
+        fullName: 'FitBody Assistant',
+        role: 'admin',
+        isSetupComplete: true,
+        avatarUrl: 'https://ui-avatars.com/api/?name=FitBody+Assistant&background=896CFE&color=fff'
+      });
+      console.log('✅ Default Support Admin created');
+    }
+  } catch (err) {
+    console.error('Failed to create default admin:', err);
+  }
+
   httpServer.listen(PORT, () => {
     console.log(`🚀 FITBODY Server running on port ${PORT}`);
     console.log(`📡 Socket.io listening on port ${PORT}`);
