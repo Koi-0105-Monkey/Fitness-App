@@ -5,10 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useFavoriteStore } from '../../store/favoriteStore';
 
-export default function FavoritesScreen() {
+export default function FavoriteScreen() {
   const router = useRouter();
   const { favorites, isLoading, fetchFavorites, toggleFavorite } = useFavoriteStore();
 
+  // Fetch mỗi khi vào màn hình để luôn có data mới nhất từ server
   useEffect(() => {
     fetchFavorites();
   }, []);
@@ -18,19 +19,13 @@ export default function FavoritesScreen() {
     return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
   };
 
-  const getImageUrl = (url: string) => {
-    if (!url) return 'https://via.placeholder.com/150';
-    if (url.startsWith('http')) return url;
-    const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || '';
-    return `${baseUrl}${url}`;
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerContent}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="caret-back" size={18} color={COLORS.accent} />
           <Text style={styles.headerTitle}>My Favorites</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -43,12 +38,6 @@ export default function FavoritesScreen() {
             <View style={styles.emptyContainer}>
               <Ionicons name="star-outline" size={60} color={COLORS.purple} style={{ opacity: 0.5 }} />
               <Text style={styles.emptyText}>You haven't added any workouts to your favorites yet.</Text>
-              <TouchableOpacity 
-                style={styles.browseBtn}
-                onPress={() => router.push('/(tabs)/workout')}
-              >
-                <Text style={styles.browseBtnText}>Explore Workouts</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.list}>
@@ -68,7 +57,7 @@ export default function FavoritesScreen() {
                       </View>
                       <View style={styles.statItem}>
                         <Ionicons name="flame" size={12} color="#212020" />
-                        <Text style={styles.statText}>{item.workout.calories || 0} Kcal</Text>
+                        <Text style={styles.statText}>{item.workout.calories} Kcal</Text>
                       </View>
                     </View>
 
@@ -78,7 +67,7 @@ export default function FavoritesScreen() {
                   </View>
 
                   <View style={styles.cardImageContainer}>
-                    <Image source={{ uri: getImageUrl(item.workout.imageUrl) }} style={styles.cardImage} />
+                    <Image source={{ uri: item.workout.imageUrl }} style={styles.cardImage} />
                     <TouchableOpacity
                       style={styles.starIconContainer}
                       onPress={(e) => {
@@ -111,13 +100,15 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  headerContent: {
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    justifyContent: 'center',
+    gap: 8,
   },
   headerTitle: {
     color: 'white',
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: 'Poppins',
     fontWeight: '700',
   },
@@ -128,7 +119,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 80,
+    marginTop: 100,
   },
   emptyText: {
     color: 'white',
@@ -137,17 +128,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 40,
     fontSize: 14,
-  },
-  browseBtn: {
-    marginTop: 20,
-    backgroundColor: COLORS.accent,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  browseBtnText: {
-    color: '#212020',
-    fontWeight: '700',
   },
   list: {
     gap: 16,

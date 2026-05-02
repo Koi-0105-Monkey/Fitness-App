@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
@@ -15,7 +15,7 @@ import { useSetupStore } from '../store/setupStore';
  */
 export default function SplashIndex() {
   const router = useRouter();
-  const { checkAuth, isAuthenticated, isSetupComplete, isLoading } = useAuthStore();
+  const { checkAuth } = useAuthStore();
   const { loadSetupData } = useSetupStore();
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.8)).current;

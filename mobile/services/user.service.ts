@@ -41,16 +41,4 @@ export const userService = {
     const { data } = await axiosInstance.delete(ENDPOINTS.USER.ME);
     return data;
   },
-
-  // Lấy danh sách yêu thích
-  getFavorites: async () => {
-    const { data } = await axiosInstance.get(ENDPOINTS.USER.FAVORITES);
-    return data;
-  },
-
-  // Thêm/Xoá yêu thích 1 bài viết/video
-  toggleFavorite: async (resourceId: string) => {
-    const { data } = await axiosInstance.post(ENDPOINTS.USER.FAVORITES, { resourceId });
-    return data;
-  },
 };

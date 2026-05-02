@@ -76,3 +76,11 @@ export const deleteMe = asyncHandler(async (req: Request, res: Response) => {
   
   sendSuccess(res, null, 'Đã xoá tài khoản thành công');
 });
+
+// @desc    Lấy danh sách tất cả user (Dành cho Admin Web để khởi tạo chat)
+// @route   GET /api/users
+export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+  // Lấy tất cả user trừ admin để tránh Admin tự chat với chính mình
+  const users = await User.find({ role: { $ne: 'admin' } }).select('-password').sort({ createdAt: -1 });
+  sendSuccess(res, users, 'Lấy danh sách người dùng thành công');
+});

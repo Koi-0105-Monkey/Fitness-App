@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, SafeAreaView, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useRouter } from 'expo-router';
 import { useSetupStore } from '../../store/setupStore';
+import { recommendationService } from '../../services/resource.service';
+import { Workout } from '../../services/workout.service';
+import { useFavoriteStore } from '../../store/favoriteStore';
 
 // Local images from assets
 const imgSquat = require('../../assets/woman-helping-man-gym (1) 2.png');
@@ -17,9 +20,21 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const { data, loadSetupData } = useSetupStore();
+  const [recoWorkouts, setRecoWorkouts] = useState<(Workout & { favoritesCount: number })[]>([]);
+  const [recoLoading, setRecoLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useFavoriteStore();
 
   useEffect(() => {
     loadSetupData();
+    (async () => {
+      try {
+        const data = await recommendationService.getRecommendations(2);
+        setRecoWorkouts(data);
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+      }
+      finally { setRecoLoading(false); }
+    })();
   }, []);
 
   const displayName = data.nickname || data.fullName || 'User';
@@ -72,51 +87,49 @@ export default function HomeScreen() {
         {/* Recommendations */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recommendations</Text>
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+            onPress={() => router.push('/recommendations')}
+          >
             <Text style={styles.seeAllText}>See All</Text>
             <Ionicons name="caret-forward" size={12} color={COLORS.accent} />
           </TouchableOpacity>
         </View>
         <View style={styles.horizontalList}>
-          {/* Card 1 */}
-          <View style={styles.card}>
-            <Image source={imgSquat} style={styles.cardImage} />
-            <TouchableOpacity style={styles.starIcon}>
-              <Ionicons name="star" size={14} color={COLORS.accent} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.playButton}>
-              <Ionicons name="play" size={11} color="white" />
-            </TouchableOpacity>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Squat Exercise</Text>
-              <View style={styles.cardStats}>
-                <Ionicons name="time-outline" size={10} color="#896CFE" />
-                <Text style={styles.cardStatText}>12 Minutes</Text>
-                <Ionicons name="flame-outline" size={10} color="#896CFE" style={{ marginLeft: 6 }} />
-                <Text style={styles.cardStatText}>120 Kcal</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Card 2 */}
-          <View style={styles.card}>
-            <Image source={imgStretching} style={styles.cardImage} />
-            <TouchableOpacity style={styles.starIcon}>
-              <Ionicons name="star-outline" size={14} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.playButton}>
-              <Ionicons name="play" size={11} color="white" />
-            </TouchableOpacity>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Full Body Stretching</Text>
-              <View style={styles.cardStats}>
-                <Ionicons name="time-outline" size={10} color="#896CFE" />
-                <Text style={styles.cardStatText}>12 Minutes</Text>
-                <Ionicons name="flame-outline" size={10} color="#896CFE" style={{ marginLeft: 6 }} />
-                <Text style={styles.cardStatText}>120 Kcal</Text>
-              </View>
-            </View>
-          </View>
+          {recoLoading ? (
+            <ActivityIndicator color={COLORS.purple} style={{ marginVertical: 30 }} />
+          ) : recoWorkouts.length === 0 ? (
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, padding: 20 }}>No recommendations yet</Text>
+          ) : (
+            recoWorkouts.map(item => (
+              <TouchableOpacity
+                key={item._id}
+                style={styles.card}
+                onPress={() => router.push(`/workout/${item._id}`)}
+              >
+                <Image source={{ uri: item.imageUrl || 'https://placehold.co/157x92' }} style={styles.cardImage} />
+                <TouchableOpacity
+                  style={styles.starIcon}
+                  onPress={() => toggleFavorite(item._id)}
+                >
+                  <Ionicons
+                    name={isFavorite(item._id) ? 'star' : 'star-outline'}
+                    size={14}
+                    color={isFavorite(item._id) ? COLORS.accent : 'white'}
+                  />
+                </TouchableOpacity>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                  <View style={styles.cardStats}>
+                    <Ionicons name="time-outline" size={10} color="#896CFE" />
+                    <Text style={styles.cardStatText}>{item.duration} Min</Text>
+                    <Ionicons name="flame-outline" size={10} color="#896CFE" style={{ marginLeft: 6 }} />
+                    <Text style={styles.cardStatText}>{item.calories} Kcal</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Weekly Challenge */}

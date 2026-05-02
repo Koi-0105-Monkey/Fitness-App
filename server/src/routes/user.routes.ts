@@ -13,4 +13,7 @@ router.delete('/me', userController.deleteMe);
 router.post('/me/favorites', userController.toggleFavorite);
 router.get('/me/favorites', userController.getFavorites);
 
+// Admin / Thường có thể lấy danh sách all users để ib
+router.get('/', userController.getAllUsers);
+
 export default router;

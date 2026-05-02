@@ -4,9 +4,12 @@ import { ENDPOINTS } from '../constants/endpoints';
 export interface Exercise {
   _id: string;
   name: string;
-  duration: string;
-  reps: string;
+  sets?: number;
+  duration?: string;
+  reps?: string;
   videoUrl?: string;
+  videoDuration?: string;
+  fitMode?: 'contain' | 'cover';
   description?: string;
 }
 
@@ -36,8 +39,9 @@ export const workoutService = {
     return data.data; // Server trả về { success, data, message }
   },
 
-  getTrainingOfDay: async (): Promise<Workout> => {
-    const { data } = await axiosInstance.get(ENDPOINTS.WORKOUT.TRAINING_OF_DAY);
+  getTrainingOfDay: async (level?: string): Promise<Workout> => {
+    const url = level ? `${ENDPOINTS.WORKOUT.TRAINING_OF_DAY}?level=${level}` : ENDPOINTS.WORKOUT.TRAINING_OF_DAY;
+    const { data } = await axiosInstance.get(url);
     return data.data;
   },
 
