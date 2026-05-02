@@ -45,8 +45,9 @@ export default function TabsLayout() {
         options={{ href: null }}
       />
       <Tabs.Screen
-        name="resources"
+        name="nutrition/index"
         options={{
+          title: 'Nutrition',
           tabBarIcon: ({ color }) => (
             <Ionicons name="document-text" size={28} color={color} />
           ),

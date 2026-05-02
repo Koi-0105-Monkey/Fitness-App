@@ -59,7 +59,7 @@ export default function HomeScreen() {
             <Ionicons name="bar-chart-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Progress{'\n'}Tracking</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem}>
+          <TouchableOpacity style={styles.categoryItem} onPress={() => router.push('/nutrition' as any)}>
             <Ionicons name="nutrition-outline" size={32} color={COLORS.purple} />
             <Text style={styles.categoryText}>Nutrition</Text>
           </TouchableOpacity>
