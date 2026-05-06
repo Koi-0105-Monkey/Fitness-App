@@ -8,12 +8,15 @@ import {
   Image,
   FlatList,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/colors';
 import { useRouter } from 'expo-router';
 import { workoutService, Workout } from '../../../services/workout.service';
+import { useAuthStore } from '../../../store/authStore';
+import { postService, Post } from '../../../services/post.service';
 
 type Tab = 'forum' | 'challenges';
 
@@ -25,13 +28,6 @@ const FORUM_TOPICS = [
   { id: '4', title: 'Strength Training Techniques', description: 'Strategies for improving flexibility and joint mobility to prevent injuries', time: 'Today 17:05' },
 ];
 
-const FORUM_POSTS = [
-  { id: '1', user: 'Madison', content: 'Lorem ipsum dolor sit amet consectetur. Tortor aenean suspendisse pretium nunc non facilisi.', likes: '30,254', comments: '12,254', views: '1,254', saved: false },
-  { id: '2', user: 'Madison', content: 'Lorem ipsum dolor sit amet consectetur. Tortor aenean suspendisse pretium nunc non facilisi.', likes: '30,254', comments: '12,254', views: '1,254', saved: true },
-  { id: '3', user: 'Madison', content: 'Lorem ipsum dolor sit amet consectetur. Tortor aenean suspendisse pretium nunc non facilisi.', likes: '30,254', comments: '12,254', views: '1,254', saved: false },
-  { id: '4', user: 'Madison', content: 'Lorem ipsum dolor sit amet consectetur. Tortor aenean suspendisse pretium nunc non facilisi.', likes: '30,254', comments: '12,254', views: '1,254', saved: false },
-];
-
 // ─── Local fallback images for challenges ─────────────────────────────────────
 const LOCAL_IMAGES = [
   require('../../../assets/woman-helping-man-gym (1) 2.png'),
@@ -41,38 +37,110 @@ const LOCAL_IMAGES = [
 ];
 
 // ─── Forum Post Card ──────────────────────────────────────────────────────────
-function ForumPostCard({ item }: { item: typeof FORUM_POSTS[0] }) {
-  const [saved, setSaved] = useState(item.saved);
-  const avatarUri = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.user)}&background=896CFE&color=fff&size=80`;
+function ForumPostCard({ item, onDelete, onEdit, onComment, currentUserId }: { item: Post; onDelete: () => void; onEdit: (newContent: string) => void; onComment: (text: string) => void; currentUserId?: string }) {
+  const [saved, setSaved] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(item.content);
+
+  const userName = item.user ? item.user.fullName : 'Unknown User';
+  const avatarUri = item.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=896CFE&color=fff&size=80`;
+
+  const isOwner = item.user?._id === currentUserId;
 
   return (
     <View style={styles.forumPostCard}>
       <View style={styles.forumPostHeader}>
         <Image source={{ uri: avatarUri }} style={styles.forumAvatar} />
-        <Text style={styles.forumUserName}>{item.user}</Text>
-        <TouchableOpacity onPress={() => setSaved(!saved)}>
+        <Text style={styles.forumUserName}>{userName}</Text>
+        <TouchableOpacity onPress={() => setSaved(!saved)} style={{ marginRight: 12 }}>
           <Ionicons
             name={saved ? 'star' : 'star-outline'}
-            size={16}
+            size={18}
             color={saved ? COLORS.yellow : 'rgba(255,255,255,0.4)'}
           />
         </TouchableOpacity>
+        {isOwner && (
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <TouchableOpacity onPress={() => setIsEditing(true)}>
+              <Ionicons name="pencil-outline" size={18} color="rgba(255,255,255,0.7)" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onDelete}>
+              <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-      <Text style={styles.forumPostContent}>{item.content}</Text>
+      
+      {isEditing ? (
+        <View style={{ marginBottom: 12 }}>
+          <TextInput
+            style={[styles.createPostInput, { minHeight: 40, marginBottom: 8, padding: 8, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 8 }]}
+            value={editContent}
+            onChangeText={setEditContent}
+            multiline
+            autoFocus
+          />
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 16 }}>
+            <TouchableOpacity onPress={() => { setIsEditing(false); setEditContent(item.content); }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'Poppins', fontSize: 13 }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { onEdit(editContent); setIsEditing(false); }}>
+              <Text style={{ color: COLORS.yellow, fontFamily: 'Poppins', fontSize: 13, fontWeight: '600' }}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <Text style={styles.forumPostContent}>{item.content}</Text>
+      )}
+
       <View style={styles.forumPostStats}>
         <View style={styles.forumStat}>
           <Ionicons name="star" size={13} color={COLORS.yellow} />
-          <Text style={styles.forumStatText}>{item.likes}</Text>
+          <Text style={styles.forumStatText}>{item.likes?.length || 0}</Text>
         </View>
-        <View style={styles.forumStat}>
+        <TouchableOpacity style={styles.forumStat} onPress={() => setShowComments(!showComments)}>
           <Ionicons name="chatbubble-outline" size={13} color="rgba(255,255,255,0.5)" />
-          <Text style={styles.forumStatText}>{item.comments}</Text>
-        </View>
-        <View style={styles.forumStat}>
-          <Ionicons name="eye-outline" size={13} color="rgba(255,255,255,0.5)" />
-          <Text style={styles.forumStatText}>{item.views}</Text>
-        </View>
+          <Text style={styles.forumStatText}>{item.comments?.length || 0}</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* COMMENTS SECTION */}
+      {showComments && (
+        <View style={styles.commentsSection}>
+          {item.comments?.map(c => {
+            const cName = c.user ? c.user.fullName : 'Unknown User';
+            const cAvatar = c.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=896CFE&color=fff&size=80`;
+            return (
+              <View key={c._id} style={styles.commentRow}>
+                <Image source={{ uri: cAvatar }} style={styles.commentAvatar} />
+                <View style={styles.commentBubble}>
+                  <Text style={styles.commentName}>{cName}</Text>
+                  <Text style={styles.commentText}>{c.content}</Text>
+                </View>
+              </View>
+            );
+          })}
+          <View style={styles.addCommentRow}>
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Write a comment..."
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={commentText}
+              onChangeText={setCommentText}
+            />
+            <TouchableOpacity onPress={() => {
+              if (commentText.trim()) {
+                onComment(commentText);
+                setCommentText('');
+              }
+            }}>
+              <Ionicons name="send" size={18} color={COLORS.yellow} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -98,10 +166,74 @@ function ChallengeCard({ item, onPress }: { item: Workout; onPress: () => void }
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CommunityScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [featuredSaved, setFeaturedSaved] = useState(false);
   const [challenges, setChallenges] = useState<Workout[]>([]);
   const [loadingChallenges, setLoadingChallenges] = useState(false);
+
+  // Forum State
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [loadingPosts, setLoadingPosts] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'forum') {
+      fetchPosts();
+    }
+  }, [activeTab]);
+
+  const fetchPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      const data = await postService.getPosts();
+      setPosts(data);
+    } catch (e) {
+      console.log('Error fetching posts:', e);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!newPostContent.trim()) return;
+
+    try {
+      const newPost = await postService.createPost(newPostContent.trim());
+      setPosts([newPost, ...posts]);
+      setNewPostContent('');
+    } catch (e) {
+      console.log('Error creating post', e);
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    try {
+      await postService.deletePost(id);
+      setPosts(posts.filter((p) => p._id !== id));
+    } catch (e) {
+      console.log('Error deleting post', e);
+    }
+  };
+
+  const handleEditPost = async (id: string, newContent: string) => {
+    if (!newContent.trim()) return;
+    try {
+      const updatedPost = await postService.updatePost(id, newContent.trim());
+      setPosts(posts.map((p) => p._id === id ? updatedPost : p));
+    } catch (e) {
+      console.log('Error editing post', e);
+    }
+  };
+
+  const handleAddComment = async (postId: string, content: string) => {
+    try {
+      const updatedPost = await postService.addComment(postId, content);
+      setPosts(posts.map((p) => p._id === postId ? updatedPost : p));
+    } catch (e) {
+      console.log('Error adding comment', e);
+    }
+  };
 
   useEffect(() => {
     if (activeTab === 'challenges' && challenges.length === 0) {
@@ -228,9 +360,35 @@ export default function CommunityScreen() {
       {activeTab === 'forum' && (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
           <Text style={styles.sectionTitle}>Forums</Text>
-          {FORUM_POSTS.map((post) => (
-            <ForumPostCard key={post.id} item={post} />
-          ))}
+          
+          <View style={styles.createPostContainer}>
+            <TextInput
+              style={styles.createPostInput}
+              placeholder="What's on your mind?"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={newPostContent}
+              onChangeText={setNewPostContent}
+              multiline
+            />
+            <TouchableOpacity style={styles.postButton} onPress={handleCreatePost}>
+              <Text style={styles.postButtonText}>Post</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loadingPosts ? (
+            <ActivityIndicator size="large" color={COLORS.yellow} style={{ marginTop: 20 }} />
+          ) : (
+            posts.map((post) => (
+              <ForumPostCard 
+                key={post._id} 
+                item={post} 
+                onDelete={() => handleDeletePost(post._id)}
+                onEdit={(newContent) => handleEditPost(post._id, newContent)}
+                onComment={(text) => handleAddComment(post._id, text)}
+                currentUserId={user?._id}
+              />
+            ))
+          )}
         </ScrollView>
       )}
 
@@ -319,4 +477,20 @@ const styles = StyleSheet.create({
   challengeTitle: { color: 'white', fontSize: 16, fontFamily: 'Poppins', fontWeight: '700', marginBottom: 6 },
   challengeDesc: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'League Spartan', lineHeight: 16 },
   challengeImage: { width: 110, height: 110 },
+
+  // Create Post
+  createPostContainer: { backgroundColor: '#2A2A2A', borderRadius: 14, padding: 14, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(137,108,254,0.25)' },
+  createPostInput: { color: 'white', fontSize: 14, fontFamily: 'League Spartan', minHeight: 60, textAlignVertical: 'top', marginBottom: 12 },
+  postButton: { backgroundColor: COLORS.yellow, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  postButtonText: { color: '#232323', fontSize: 14, fontFamily: 'Poppins', fontWeight: '700' },
+
+  // Comments
+  commentsSection: { marginTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(137,108,254,0.15)', paddingTop: 12 },
+  commentRow: { flexDirection: 'row', marginBottom: 10 },
+  commentAvatar: { width: 26, height: 26, borderRadius: 13, marginRight: 8 },
+  commentBubble: { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 8 },
+  commentName: { color: COLORS.yellow, fontSize: 12, fontFamily: 'Poppins', fontWeight: '600', marginBottom: 2 },
+  commentText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'League Spartan' },
+  addCommentRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  commentInput: { flex: 1, color: 'white', fontSize: 12, fontFamily: 'League Spartan', height: 32, paddingVertical: 0 },
 });
